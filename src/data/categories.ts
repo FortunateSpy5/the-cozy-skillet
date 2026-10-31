@@ -42,6 +42,12 @@ export const CATEGORIES: CategoryMeta[] = [
     emoji: '🥖',
     description: 'Precision metric baking — artisanal skillet focaccias, tea-time loaf cakes, and chewy brownies.',
   },
+  {
+    name: 'Drinks & Beverages',
+    slug: 'drinks-and-beverages',
+    emoji: '🍹',
+    description: 'Artisanal cafe refreshments, stovetop hot chocolates, spiced chais, and fizzy street sodas.',
+  },
 ];
 
 export interface CuisineMeta {

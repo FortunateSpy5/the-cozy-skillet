@@ -16,6 +16,7 @@ export interface Props {
   bakingType?: string;
   image?: string;
   imageAlt?: string;
+  priority?: boolean;
 }
 
 const {
@@ -35,14 +36,22 @@ const {
   bakingType,
   image,
   imageAlt,
+  priority = false,
 } = Astro.props;
 
 const totalMinutes = prepTimeMinutes + cookTimeMinutes + (proofTimeMinutes || 0);
 const primaryCategory = categories[0] || 'Recipe';
 const primaryCuisine = cuisine.join(', ');
 
+// Sanitize tags: only allow "Quick" badge if totalMinutes <= 30
+const isActuallyQuick = totalMinutes <= 30;
+const sanitizedTags = tags.filter((t) => {
+  if (t.toLowerCase().includes('quick') && !isActuallyQuick) return false;
+  return true;
+});
+
 // Curate display badges to prevent visual clutter (max 3-4 key badges)
-const displayTag = tags[0];
+const displayTag = sanitizedTags[0];
 const displayDietary = dietary.slice(0, 2);
 ---
 
@@ -53,7 +62,7 @@ const displayDietary = dietary.slice(0, 2);
   data-description={description.toLowerCase()}
   data-categories={categories.map((c) => c.toLowerCase()).join(' ')}
   data-dietary={dietary.map((d) => d.toLowerCase()).join(' ')}
-  data-tags={tags.map((t) => t.toLowerCase()).join(' ')}
+  data-tags={sanitizedTags.map((t) => t.toLowerCase()).join(' ')}
   data-cuisine={cuisine.map((c) => c.toLowerCase()).join(' ')}
 >
   {image && (
@@ -61,8 +70,11 @@ const displayDietary = dietary.slice(0, 2);
       <img 
         src={image} 
         alt={imageAlt || title} 
-        loading="lazy" 
+        loading={priority ? "eager" : "lazy"} 
+        fetchpriority={priority ? "high" : "auto"}
         decoding="async"
+        width="640"
+        height="400"
         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out" 
       />
       <div class="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>

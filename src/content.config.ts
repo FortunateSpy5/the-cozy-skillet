@@ -12,6 +12,7 @@ const recipes = defineCollection({
     image: z.string().default('/images/recipes/default-skillet.jpg'),
     imageAlt: z.string().optional(),
     categories: z.array(z.string()).default(['Skillet Mains & Curries']),
+    featured: z.boolean().default(false),
     bakingType: z.enum(['Breads & Flatbreads', 'Cakes & Tea Loaves', 'Cookies, Brownies & Bars']).optional(),
     cuisine: z.array(z.string()).default(['General']),
     tags: z.array(z.string()).default([]),

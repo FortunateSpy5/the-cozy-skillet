@@ -5,7 +5,19 @@ import { getCollection } from 'astro:content';
 import { CATEGORIES } from '../data/categories';
 
 const recipes = await getCollection('recipes');
-const sortedRecipes = [...recipes].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const sortedRecipes = [...recipes].sort((a, b) => {
+  // 1. Featured core skillet mains & signature breads lead the grid
+  const aFeatured = a.data.featured ? 1 : 0;
+  const bFeatured = b.data.featured ? 1 : 0;
+  if (bFeatured !== aFeatured) return bFeatured - aFeatured;
+
+  // 2. Newest published date
+  const dateDiff = b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
+  if (dateDiff !== 0) return dateDiff;
+
+  // 3. Alphabetical fallback
+  return a.data.title.localeCompare(b.data.title);
+});
 
 // Only display categories with published recipes on the homepage filter bar
 const activeCategories = CATEGORIES.map((cat) => {
@@ -134,7 +146,7 @@ const recipeSearchData = sortedRecipes.map((r) => ({
 
     <!-- Recipe Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8" id="recipes-grid" data-index={JSON.stringify(recipeSearchData)}>
-      {sortedRecipes.map((recipe) => (
+      {sortedRecipes.map((recipe, index) => (
         <RecipeCard
           slug={recipe.id.replace(/\.(md|mdx)$/, '')}
           title={recipe.data.title}
@@ -152,6 +164,7 @@ const recipeSearchData = sortedRecipes.map((r) => ({
           bakingType={recipe.data.bakingType}
           image={recipe.data.image}
           imageAlt={recipe.data.imageAlt}
+          priority={index < 3}
         />
       ))}
     </div>
