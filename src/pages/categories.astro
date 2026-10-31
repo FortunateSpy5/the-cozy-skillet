@@ -1,0 +1,186 @@
+---
+import Layout from '../layouts/Layout.astro';
+import RecipeCard from '../components/RecipeCard.astro';
+import { getCollection } from 'astro:content';
+import { CATEGORIES, CUISINES } from '../data/categories';
+
+const recipes = await getCollection('recipes');
+
+const bakingBuckets = [
+  'Breads & Flatbreads',
+  'Cakes & Tea Loaves',
+  'Cookies, Brownies & Bars',
+];
+
+const allTags = Array.from(new Set(recipes.flatMap((r) => r.data.tags)));
+const allDietary = Array.from(new Set(recipes.flatMap((r) => r.data.dietary)));
+---
+
+<Layout title="Categories, Cuisines & Tags | The Cozy Skillet">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+    
+    <div class="mb-12 text-center max-w-xl mx-auto">
+      <h1 class="text-3xl sm:text-5xl font-serif font-bold text-[#4A3F35] mb-3">
+        Recipe Index & Categories
+      </h1>
+      <p class="text-sm sm:text-base text-[#6B5B4F]">
+        Explore dishes by dedicated category subdirectories, global cuisines adapted for Indian pantries, and practical kitchen tags.
+      </p>
+    </div>
+
+    <!-- 1. Dish Categories (Dedicated Pages) -->
+    <div class="mb-12">
+      <h2 class="text-xl font-serif font-bold text-[#4A3F35] mb-4 pb-2 border-b border-[#EBE5D9] flex items-center justify-between">
+        <span>Dish Categories</span>
+        <span class="text-xs font-sans text-[#6B5B4F] font-normal">Click to browse dedicated directory</span>
+      </h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {CATEGORIES.map((cat) => {
+          const count = recipes.filter((r) =>
+            r.data.categories.some((c: string) => c.toLowerCase() === cat.name.toLowerCase())
+          ).length;
+          return (
+            <a 
+              href={cat.slug === 'baking' ? '/baking' : `/category/${cat.slug}`}
+              class="bg-white border border-[#EBE5D9] p-4 rounded-2xl shadow-2xs hover:border-[#9C4B25] hover:shadow-sm transition-all group flex flex-col justify-between"
+            >
+              <div>
+                <span class="text-2xl mb-1 block">{cat.emoji}</span>
+                <span class="block text-sm font-bold text-[#4A3F35] group-hover:text-[#9C4B25] transition-colors leading-snug">
+                  {cat.name}
+                </span>
+              </div>
+              <span class="block text-xs text-[#6B5B4F] mt-2 font-medium">
+                {count} {count === 1 ? 'recipe' : 'recipes'} →
+              </span>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+
+    <!-- 2. Baking Hub Section -->
+    <div class="mb-12 bg-[#FAF3EE]/60 border border-[#EBE5D9] p-6 sm:p-8 rounded-3xl">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xl">🥖</span>
+            <h2 class="text-xl font-serif font-bold text-[#4A3F35]">The Baking Hub</h2>
+          </div>
+          <p class="text-xs sm:text-sm text-[#6B5B4F]">Precision metric baking with exact grams and oven/stovetop instructions.</p>
+        </div>
+        <a 
+          href="/baking" 
+          class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#9C4B25] text-white text-xs font-bold rounded-xl shadow-xs hover:bg-[#7A3617] transition-colors w-fit"
+        >
+          <span>Visit Baking Hub</span>
+          <span>→</span>
+        </a>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {bakingBuckets.map((bucket) => {
+          const count = recipes.filter((r) => r.data.bakingType === bucket).length;
+          return (
+            <a href="/baking" class="bg-white border border-[#EBE5D9] p-4 rounded-2xl hover:border-[#9C4B25] transition-colors group">
+              <span class="block text-sm font-bold text-[#4A3F35] group-hover:text-[#9C4B25] transition-colors">{bucket}</span>
+              <span class="block text-xs text-[#6B5B4F] mt-1 font-medium">{count} {count === 1 ? 'recipe' : 'recipes'}</span>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+
+    <!-- 3. Cuisines & Practical Tags Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+      <!-- Cuisines (Dedicated Subdirectory Pages) -->
+      <div>
+        <h2 class="text-lg font-serif font-bold text-[#4A3F35] mb-4 pb-2 border-b border-[#EBE5D9] flex items-center justify-between">
+          <span>Cuisines (Adapted for Indian Palate)</span>
+          <span class="text-xs font-normal text-[#6B5B4F]">Dedicated pages</span>
+        </h2>
+        <div class="grid grid-cols-2 gap-2.5">
+          {CUISINES.map((c) => {
+            const count = recipes.filter((r) =>
+              r.data.cuisine.some((item: string) => item.toLowerCase() === c.name.toLowerCase())
+            ).length;
+            return (
+              <a 
+                href={`/cuisine/${c.slug}`}
+                class="bg-white border border-[#EBE5D9] p-3 rounded-xl flex items-center justify-between gap-2 hover:border-[#9C4B25] transition-all group shadow-2xs"
+              >
+                <div class="flex items-center gap-2">
+                  <span>{c.emoji}</span>
+                  <span class="text-sm font-bold text-[#4A3F35] group-hover:text-[#9C4B25] transition-colors">{c.name}</span>
+                </div>
+                <span class="text-xs bg-[#FAF3EE] text-[#9C4B25] px-2 py-0.5 rounded-full font-semibold">
+                  {count}
+                </span>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+
+      <!-- Practical Tags -->
+      <div>
+        <h2 class="text-lg font-serif font-bold text-[#4A3F35] mb-4 pb-2 border-b border-[#EBE5D9]">
+          Practical Kitchen Tags
+        </h2>
+        <div class="flex flex-wrap gap-2">
+          {allTags.map((tag) => {
+            const count = recipes.filter((r) => r.data.tags.includes(tag)).length;
+            return (
+              <a 
+                href={`/search`}
+                class="bg-[#FAF3EE] border border-[#EBE5D9] px-3.5 py-2 rounded-xl flex items-center gap-2 hover:border-[#9C4B25] transition-colors"
+              >
+                <span class="text-sm font-bold text-[#9C4B25]">{tag}</span>
+                <span class="text-xs bg-white text-[#6B5B4F] px-2 py-0.5 rounded-full font-semibold border border-[#EBE5D9]">
+                  {count}
+                </span>
+              </a>
+            );
+          })}
+          {allDietary.map((d) => {
+            const count = recipes.filter((r) => r.data.dietary.includes(d)).length;
+            return (
+              <div class="bg-white border border-[#EBE5D9] px-3.5 py-2 rounded-xl flex items-center gap-2">
+                <span class="text-sm font-medium text-[#4A3F35]">{d}</span>
+                <span class="text-xs bg-[#FAF3EE] text-[#6B5B4F] px-2 py-0.5 rounded-full font-semibold">
+                  {count}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. All Recipes Grid -->
+    <div>
+      <h2 class="text-xl font-serif font-bold text-[#4A3F35] mb-6 pb-2 border-b border-[#EBE5D9]">
+        All Tested Recipes ({recipes.length})
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {recipes.map((recipe) => (
+          <RecipeCard
+            slug={recipe.id.replace(/\.(md|mdx)$/, '')}
+            title={recipe.data.title}
+            description={recipe.data.description}
+            categories={recipe.data.categories}
+            cuisine={recipe.data.cuisine}
+            tags={recipe.data.tags}
+            dietary={recipe.data.dietary}
+            difficulty={recipe.data.difficulty}
+            prepTimeMinutes={recipe.data.prepTimeMinutes}
+            cookTimeMinutes={recipe.data.cookTimeMinutes}
+            servings={recipe.data.servings}
+            bakingType={recipe.data.bakingType}
+          />
+        ))}
+      </div>
+    </div>
+
+  </div>
+</Layout>

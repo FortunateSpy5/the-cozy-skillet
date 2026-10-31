@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid #9C4B25;
+    outline-offset: 2px;
+  }
+}
+
+/* -------------------------------------------------------------
+ * Editorial & Recipe Typography (.prose)
+ * Warm, accessible, high-contrast, functional styling.
+ * ------------------------------------------------------------- */
+.prose {
+  color: #5F5045;
+  line-height: 1.75;
+}
+
+.prose > h2 {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  color: #4A3F35;
+  margin-top: 2.25rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.015em;
+}
+
+@media (min-width: 640px) {
+  .prose > h2 {
+    font-size: 1.75rem;
+    line-height: 2.25rem;
+  }
+}
+
+.prose > h3 {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  color: #4A3F35;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose > p {
+  color: #5F5045;
+  line-height: 1.75;
+  margin-bottom: 1.25rem;
+  font-size: 1.05rem;
+}
+
+.prose > p strong,
+.prose > p b,
+.prose > ul strong,
+.prose > ol strong {
+  font-weight: 700;
+  color: #382F27;
+}
+
+.prose > p a,
+.prose > ul a,
+.prose > ol a {
+  color: #9C4B25;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.prose > p a:hover,
+.prose > ul a:hover,
+.prose > ol a:hover {
+  color: #7A3617;
+}
+
+/* Print styling for recipes - clean, ink-friendly, zero nav/footer */
+@media print {
+  header, footer, .no-print, #floating-timer, button {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .recipe-container {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+  .instruction-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

@@ -1,0 +1,77 @@
+---
+export interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+---
+
+<div class="bg-white border border-[#EBE5D9] rounded-3xl p-6 sm:p-8 shadow-xs no-print" id="cooks-notes-card" data-slug={slug}>
+  <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">📝</span>
+      <h3 class="text-lg font-serif font-bold text-[#4A3F35]">My Kitchen Notes</h3>
+    </div>
+    <span class="text-[11px] font-medium text-[#4A7C59] bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full" id="notes-status">
+      Auto-saved to device
+    </span>
+  </div>
+
+  <p class="text-xs text-[#6B5B4F] mb-3">
+    Tweak the spices, cooking time, or pan size? Jot your personal notes here. They are saved privately on your device.
+  </p>
+
+  <label for="cooks-notes-input" class="sr-only">My Kitchen Notes</label>
+  <textarea 
+    id="cooks-notes-input"
+    rows="3"
+    placeholder="e.g. In my Morphy Richards OTG, 18 mins was perfect. Next time add 1 extra green chili..."
+    aria-label="Personal kitchen notes for this recipe"
+    class="w-full p-4 bg-[#FDFBF7] border border-[#EBE5D9] rounded-2xl text-sm text-[#4A3F35] placeholder:text-[#6B5B4F]/50 focus:border-[#9C4B25] focus:ring-2 focus:ring-[#9C4B25]/20 focus:outline-none transition-all resize-y"
+  ></textarea>
+</div>
+
+<script>
+  function setupCooksNotes() {
+    const card = document.getElementById('cooks-notes-card');
+    if (!card || card.dataset.initialized === 'true') return;
+    card.dataset.initialized = 'true';
+
+    const slug = card.dataset.slug;
+    const input = document.getElementById('cooks-notes-input') as HTMLTextAreaElement | null;
+    const status = document.getElementById('notes-status');
+    if (!slug || !input) return;
+
+    const storageKey = `cozy-skillet-note-${slug}`;
+
+    // Load existing note safely with try...catch
+    try {
+      const savedNote = localStorage.getItem(storageKey);
+      if (savedNote) {
+        input.value = savedNote;
+      }
+    } catch {
+      // Storage blocked or quota exceeded
+    }
+
+    // Auto-save on input with debouncing
+    let saveTimeout: number | ReturnType<typeof setTimeout> | null = null;
+    input.addEventListener('input', () => {
+      if (status) status.textContent = 'Saving...';
+      if (saveTimeout !== null) {
+        clearTimeout(saveTimeout);
+      }
+      saveTimeout = setTimeout(() => {
+        try {
+          localStorage.setItem(storageKey, input.value);
+          if (status) status.textContent = 'Saved to device ✓';
+        } catch {
+          if (status) status.textContent = 'Unable to save (storage full)';
+        }
+      }, 500);
+    });
+  }
+
+  setupCooksNotes();
+  document.addEventListener('astro:page-load', setupCooksNotes);
+</script>

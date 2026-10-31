@@ -1,0 +1,181 @@
+---
+import GroceryExporter from './GroceryExporter.astro';
+
+export interface IngredientItem {
+  name: string;
+  amount?: number | string;
+  unit?: string;
+  metricAmount?: number | string;
+  metricUnit?: string;
+  notes?: string;
+}
+
+export interface IngredientGroup {
+  category: string;
+  items: IngredientItem[];
+}
+
+export interface Props {
+  ingredients: IngredientGroup[];
+  servings: number;
+  recipeTitle?: string;
+}
+
+const { ingredients, servings, recipeTitle = 'Recipe' } = Astro.props;
+---
+
+<div class="bg-white rounded-3xl border border-[#EBE5D9] p-6 sm:p-8 shadow-xs" id="ingredient-card">
+  <!-- Header & Serving Scaler -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#EBE5D9] gap-4">
+    <div>
+      <h2 class="text-2xl font-serif font-bold text-[#4A3F35]">Ingredients</h2>
+      <p class="text-xs text-[#6B5B4F] mt-0.5">Click ingredients to cross them off. Dual weight & volume provided.</p>
+    </div>
+
+    <!-- Scaler Control (Accessible min-h-[44px] touch targets) -->
+    <div class="flex items-center gap-2 bg-[#FAF3EE] p-1.5 rounded-2xl border border-[#EBE5D9]">
+      <span class="text-xs font-semibold text-[#6B5B4F] px-2 flex items-center gap-1">
+        <span>Servings:</span>
+        <strong id="display-servings" class="text-[#9C4B25]" data-original={servings}>{servings}</strong>
+      </span>
+      <div class="flex items-center gap-1">
+        <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer" data-multiplier="0.5" aria-label="Scale ingredients to half servings">0.5x</button>
+        <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-[#9C4B25] text-white shadow-xs cursor-pointer" data-multiplier="1" aria-label="Scale ingredients to 1x original servings">1x</button>
+        <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer" data-multiplier="2" aria-label="Scale ingredients to double servings">2x</button>
+        <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer" data-multiplier="3" aria-label="Scale ingredients to triple servings">3x</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ingredients by Category -->
+  <div class="mt-6 space-y-6">
+    {ingredients.map((group) => (
+      <div>
+        {group.category && group.category !== 'Ingredients' && (
+          <h3 class="text-sm font-bold uppercase tracking-wider text-[#9C4B25] mb-3">
+            {group.category}
+          </h3>
+        )}
+        <ul class="space-y-3">
+          {group.items.map((item) => {
+            const hasNumericAmount = typeof item.amount === 'number';
+            const hasNumericMetric = typeof item.metricAmount === 'number';
+            return (
+              <li class="ingredient-row flex items-start gap-3 p-2.5 rounded-xl hover:bg-[#FAF3EE]/60 transition-colors cursor-pointer select-none group">
+                <input 
+                  type="checkbox" 
+                  class="mt-1 h-4 w-4 rounded border-[#D5CDC1] text-[#9C4B25] focus:ring-[#9C4B25] cursor-pointer"
+                  aria-label={`Mark ${item.name} as prepared`}
+                />
+                <span class="ingredient-text text-sm sm:text-base text-[#4A3F35] leading-relaxed flex-1">
+                  {item.amount !== undefined && (
+                    <strong 
+                      class="font-semibold text-[#9C4B25] ingredient-amount" 
+                      data-base={hasNumericAmount ? item.amount : ''}
+                    >
+                      {item.amount}
+                    </strong>
+                  )}
+                  {item.unit && <span class="font-medium text-[#4A3F35]"> {item.unit}</span>}
+
+                  {item.metricAmount !== undefined && (
+                    <span class="text-xs font-semibold text-[#6B5B4F] bg-[#FAF3EE] px-2 py-0.5 rounded-lg border border-[#EBE5D9] mx-1.5 inline-block">
+                      <span class="metric-amount" data-base={hasNumericMetric ? item.metricAmount : ''}>
+                        {item.metricAmount}
+                      </span>
+                      {item.metricUnit && <span> {item.metricUnit}</span>}
+                    </span>
+                  )}
+
+                  <span class="font-medium"> {item.name}</span>
+                  {item.notes && <span class="text-xs text-[#6B5B4F] italic block sm:inline sm:ml-1">({item.notes})</span>}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    ))}
+  </div>
+
+  <GroceryExporter recipeTitle={recipeTitle} />
+</div>
+
+<script>
+  function setupIngredients() {
+    const card = document.getElementById('ingredient-card');
+    if (!card || card.dataset.initialized === 'true') return;
+    card.dataset.initialized = 'true';
+
+    // Serving Scaler
+    const displayServings = document.getElementById('display-servings');
+    const originalServings = Number(displayServings?.dataset.original || 4);
+    const scaleBtns = card.querySelectorAll<HTMLButtonElement>('.scale-btn');
+    const amountElements = card.querySelectorAll<HTMLElement>('.ingredient-amount');
+    const metricElements = card.querySelectorAll<HTMLElement>('.metric-amount');
+
+    function formatAmount(val: number): string {
+      const rounded = Math.round(val * 100) / 100;
+      return rounded.toString();
+    }
+
+    scaleBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const multiplier = parseFloat(btn.dataset.multiplier || '1');
+
+        // Update button styles
+        scaleBtns.forEach((b) => {
+          b.classList.remove('bg-[#9C4B25]', 'text-white');
+          b.classList.add('bg-white', 'text-[#9C4B25]');
+        });
+        btn.classList.add('bg-[#9C4B25]', 'text-white');
+        btn.classList.remove('bg-white', 'text-[#9C4B25]');
+
+        // Update servings display with proper 1-decimal rounding (e.g. 3 * 0.5 = 1.5)
+        if (displayServings) {
+          const scaledServings = Math.round(originalServings * multiplier * 10) / 10;
+          displayServings.textContent = scaledServings.toString();
+        }
+
+        // Recalculate volume amounts
+        amountElements.forEach((el) => {
+          const base = el.dataset.base;
+          if (base && !isNaN(Number(base))) {
+            const calculated = Number(base) * multiplier;
+            el.textContent = formatAmount(calculated);
+          }
+        });
+
+        // Recalculate metric weight amounts
+        metricElements.forEach((el) => {
+          const base = el.dataset.base;
+          if (base && !isNaN(Number(base))) {
+            const calculated = Number(base) * multiplier;
+            el.textContent = formatAmount(calculated);
+          }
+        });
+      });
+    });
+
+    // Checkbox strikethrough interaction
+    const rows = card.querySelectorAll<HTMLElement>('.ingredient-row');
+    rows.forEach((row) => {
+      const checkbox = row.querySelector<HTMLInputElement>('input[type="checkbox"]');
+      const text = row.querySelector<HTMLElement>('.ingredient-text');
+
+      row.addEventListener('click', (e) => {
+        if (e.target !== checkbox && checkbox) {
+          checkbox.checked = !checkbox.checked;
+        }
+        if (checkbox?.checked) {
+          text?.classList.add('line-through', 'opacity-40');
+        } else {
+          text?.classList.remove('line-through', 'opacity-40');
+        }
+      });
+    });
+  }
+
+  setupIngredients();
+  document.addEventListener('astro:page-load', setupIngredients);
+</script>

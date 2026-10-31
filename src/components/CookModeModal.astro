@@ -1,0 +1,226 @@
+---
+import Logo from './Logo.astro';
+
+export interface InstructionStep {
+  step: number;
+  title?: string;
+  text: string;
+}
+
+export interface Props {
+  title: string;
+  instructions: InstructionStep[];
+}
+
+const { title, instructions } = Astro.props;
+---
+
+<!-- Cook Mode Trigger Button -->
+<button 
+  type="button" 
+  id="open-cook-mode" 
+  class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#9C4B25] hover:bg-[#7A3617] text-white text-sm font-bold rounded-2xl shadow-sm transition-all transform hover:-translate-y-0.5 cursor-pointer"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="5 3 19 12 5 21 5 3"/>
+  </svg>
+  <span>Start Cook Mode</span>
+  <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Screen Stays On</span>
+</button>
+
+<!-- Fullscreen Cook Mode Modal -->
+<div 
+  id="cook-mode-modal" 
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-step-title"
+  class="fixed inset-0 z-50 bg-[#FDFBF7] text-[#4A3F35] hidden flex-col justify-between p-4 sm:p-8 md:p-12 overflow-y-auto select-none"
+  data-steps={JSON.stringify(instructions)}
+>
+  <!-- Top Bar -->
+  <div class="flex flex-wrap sm:flex-nowrap items-center justify-between border-b border-[#EBE5D9] pb-4 gap-3">
+    <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+      <Logo size="sm" showWordmark={false} />
+      <span class="px-2.5 py-1 bg-[#FAF3EE] border border-[#EBE5D9] text-[#9C4B25] rounded-xl text-xs font-bold uppercase tracking-wider shrink-0">
+        Cook Mode
+      </span>
+      <h2 class="text-sm sm:text-base md:text-lg font-serif font-bold text-[#4A3F35] truncate max-w-xs sm:max-w-md">
+        {title}
+      </h2>
+    </div>
+
+    <button 
+      type="button" 
+      id="close-cook-mode" 
+      class="px-4 py-2.5 bg-white border border-[#EBE5D9] text-[#4A3F35] hover:bg-[#FAF3EE] rounded-xl text-xs sm:text-sm font-bold transition-all shadow-2xs min-h-[44px] cursor-pointer"
+      aria-label="Exit Cook Mode"
+    >
+      ✕ Exit
+    </button>
+  </div>
+
+  <!-- Giant Step Content -->
+  <div class="my-auto max-w-4xl mx-auto py-10 text-center space-y-6">
+    <div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-[#9C4B25] text-white font-serif font-bold text-2xl sm:text-3xl shadow-md" id="modal-step-number">
+      1
+    </div>
+
+    <h3 class="text-xl sm:text-3xl font-serif font-bold text-[#4A3F35]" id="modal-step-title">
+      Step Title
+    </h3>
+
+    <p class="text-lg sm:text-3xl text-[#5F5045] leading-relaxed font-sans font-medium" id="modal-step-text">
+      Step instruction text goes here.
+    </p>
+
+    <div class="text-xs text-[#6B5B4F] pt-4">
+      Tip: Press left/right arrow keys or use buttons below to navigate.
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Controls -->
+  <div class="flex items-center justify-between border-t border-[#EBE5D9] pt-6 max-w-4xl mx-auto w-full gap-4">
+    <button 
+      type="button" 
+      id="prev-step-btn" 
+      class="flex-1 sm:flex-initial px-6 py-4 bg-white border border-[#EBE5D9] text-[#4A3F35] hover:bg-[#FAF3EE] rounded-2xl font-bold text-base transition-all disabled:opacity-40 disabled:pointer-events-none"
+    >
+      ← Previous Step
+    </button>
+
+    <span class="text-sm font-bold text-[#6B5B4F]" id="step-indicator">
+      Step 1 of {instructions.length}
+    </span>
+
+    <button 
+      type="button" 
+      id="next-step-btn" 
+      class="flex-1 sm:flex-initial px-8 py-4 bg-[#9C4B25] text-white hover:bg-[#7A3617] rounded-2xl font-bold text-base transition-all shadow-sm"
+    >
+      Next Step →
+    </button>
+  </div>
+</div>
+
+<script>
+  let wakeLock: any = null;
+  let currentStepIdx = 0;
+  let previousActiveElement: HTMLElement | null = null;
+
+  function initCookMode() {
+    const modal = document.getElementById('cook-mode-modal');
+    if (!modal || modal.dataset.initialized === 'true') return;
+    modal.dataset.initialized = 'true';
+
+    const openBtn = document.getElementById('open-cook-mode');
+    const closeBtn = document.getElementById('close-cook-mode');
+    const prevBtn = document.getElementById('prev-step-btn') as HTMLButtonElement | null;
+    const nextBtn = document.getElementById('next-step-btn') as HTMLButtonElement | null;
+    const stepNumEl = document.getElementById('modal-step-number');
+    const stepTitleEl = document.getElementById('modal-step-title');
+    const stepTextEl = document.getElementById('modal-step-text');
+    const indicatorEl = document.getElementById('step-indicator');
+
+    const steps = JSON.parse(modal.dataset.steps || '[]');
+    if (steps.length === 0) return;
+
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await (navigator as any).wakeLock.request('screen');
+          wakeLock?.addEventListener('release', () => {
+            wakeLock = null;
+          });
+        }
+      } catch (err) {
+        console.warn('Wake Lock not available or denied:', err);
+      }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) {
+        wakeLock.release().catch(() => {}).finally(() => {
+          wakeLock = null;
+        });
+      }
+    }
+
+    // Auto-reacquire wake lock when cook returns to tab after switching apps/calls
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible' && modal.classList.contains('flex')) {
+        await requestWakeLock();
+      }
+    });
+
+    function renderStep(idx: number) {
+      currentStepIdx = idx;
+      const step = steps[idx];
+      if (stepNumEl) stepNumEl.textContent = step.step.toString();
+      if (stepTitleEl) stepTitleEl.textContent = step.title || `Step ${step.step}`;
+      if (stepTextEl) stepTextEl.textContent = step.text;
+      if (indicatorEl) indicatorEl.textContent = `Step ${idx + 1} of ${steps.length}`;
+
+      if (prevBtn) prevBtn.disabled = idx === 0;
+      if (nextBtn) {
+        if (idx === steps.length - 1) {
+          nextBtn.textContent = 'Finish Cooking 🎉';
+        } else {
+          nextBtn.textContent = 'Next Step →';
+        }
+      }
+    }
+
+    openBtn?.addEventListener('click', () => {
+      previousActiveElement = document.activeElement as HTMLElement | null;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+      renderStep(0);
+      requestWakeLock();
+      closeBtn?.focus();
+    });
+
+    function closeModal() {
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+      document.body.style.overflow = '';
+      releaseWakeLock();
+      previousActiveElement?.focus();
+    }
+
+    closeBtn?.addEventListener('click', closeModal);
+
+    prevBtn?.addEventListener('click', () => {
+      if (currentStepIdx > 0) renderStep(currentStepIdx - 1);
+    });
+
+    nextBtn?.addEventListener('click', () => {
+      if (currentStepIdx < steps.length - 1) {
+        renderStep(currentStepIdx + 1);
+      } else {
+        closeModal();
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (!modal.classList.contains('flex')) return;
+      if (e.target instanceof HTMLButtonElement && e.key === ' ') return;
+
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        if (currentStepIdx < steps.length - 1) renderStep(currentStepIdx + 1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (currentStepIdx > 0) renderStep(currentStepIdx - 1);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        closeModal();
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', initCookMode);
+  initCookMode();
+</script>

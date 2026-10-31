@@ -1,0 +1,134 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import RecipeCard from '../../components/RecipeCard.astro';
+import { getCollection } from 'astro:content';
+
+const allRecipes = await getCollection('recipes');
+const bakingRecipes = allRecipes.filter((r) => r.data.categories.includes('Baking'));
+
+const bakingBuckets = [
+  {
+    name: 'Breads & Flatbreads',
+    emoji: '🥖',
+    description: 'Crisp cast-iron skillet focaccias, soft homemade pav, pull-apart breads, and stovetop flatbreads.',
+  },
+  {
+    name: 'Cakes & Tea Loaves',
+    emoji: '🥮',
+    description: 'Everyday tea-time loaf cakes, spiced mawa cakes, banana breads, and single-bowl sponges.',
+  },
+  {
+    name: 'Cookies, Brownies & Bars',
+    emoji: '🍪',
+    description: 'Warm gooey cast-iron skillet cookies, deep fudgy cocoa brownies, and handheld brookies.',
+  },
+];
+---
+
+<Layout 
+  title="The Baking Hub | The Cozy Skillet"
+  description="Precision metric baking recipes — skillet focaccias, chai-time tea loaves, and gooey cast iron brownies with dual measurements."
+>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+    
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs text-[#6B5B4F] mb-6">
+      <a href="/" class="hover:text-[#9C4B25] transition-colors">Home</a>
+      <span>/</span>
+      <span class="text-[#4A3F35] font-semibold">The Baking Hub</span>
+    </nav>
+
+    <!-- Hub Header -->
+    <div class="mb-12 max-w-2xl">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAF3EE] border border-[#EBE5D9] text-[#9C4B25] text-xs font-bold uppercase tracking-wider mb-3">
+        🥖 Dedicated Baking Hub
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-serif font-bold text-[#4A3F35] mb-4">
+        Precision Baking.<br />No Fluff.
+      </h1>
+      <p class="text-base sm:text-lg text-[#5F5045] leading-relaxed">
+        Baking is culinary science. All our baking recipes feature exact metric weights in grams (`g`) alongside cups, detailed pan sizes, and temperatures in Celsius (°C).
+      </p>
+    </div>
+
+    <!-- 3 Core Baking Buckets Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+      {bakingBuckets.map((bucket) => {
+        const count = bakingRecipes.filter((r) => r.data.bakingType === bucket.name).length;
+        return (
+          <div class="bg-white border border-[#EBE5D9] p-6 rounded-3xl shadow-xs hover:border-[#9C4B25] transition-all flex flex-col justify-between">
+            <div>
+              <div class="w-12 h-12 rounded-2xl bg-[#FAF3EE] flex items-center justify-center text-2xl mb-4 border border-[#EBE5D9]">
+                {bucket.emoji}
+              </div>
+              <h3 class="text-xl font-serif font-bold text-[#4A3F35] mb-2">{bucket.name}</h3>
+              <p class="text-xs text-[#5F5045] leading-relaxed">{bucket.description}</p>
+            </div>
+            <div class="mt-4 pt-4 border-t border-[#EBE5D9] flex items-center justify-between text-xs font-semibold text-[#9C4B25]">
+              <span>{count} {count === 1 ? 'recipe' : 'recipes'}</span>
+              <span>Browse →</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+
+    <!-- Baker's Principles Banner -->
+    <div class="mb-16 bg-[#FAF3EE] border border-[#EBE5D9] rounded-3xl p-6 sm:p-8">
+      <h3 class="text-lg font-serif font-bold text-[#4A3F35] mb-4 flex items-center gap-2">
+        <span>⚖️ The Cozy Skillet Baker's Creed</span>
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs text-[#5F5045] leading-relaxed">
+        <div>
+          <strong class="block text-[#4A3F35] font-bold mb-1">1. Grams First</strong>
+          Flour scooped by cups can vary between 115g to 150g. Always use our metric weight column for reliable results.
+        </div>
+        <div>
+          <strong class="block text-[#4A3F35] font-bold mb-1">2. Celsius (°C) Oven Settings</strong>
+          Every temperature specifies exact Celsius first with OTG element directions (middle rack, top+bottom heating).
+        </div>
+        <div>
+          <strong class="block text-[#4A3F35] font-bold mb-1">3. Eggless Clarity</strong>
+          Tested eggless adaptations (dahi, condensed milk, flax) clearly noted for Indian home bakers.
+        </div>
+      </div>
+    </div>
+
+    <!-- Baking Recipes Listing -->
+    <div>
+      <h2 class="text-2xl font-serif font-bold text-[#4A3F35] mb-6 pb-2 border-b border-[#EBE5D9]">
+        Baking Collection ({bakingRecipes.length})
+      </h2>
+      {bakingRecipes.length > 0 ? (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {bakingRecipes.map((recipe) => (
+            <RecipeCard
+              slug={recipe.id.replace(/\.(md|mdx)$/, '')}
+              title={recipe.data.title}
+              description={recipe.data.description}
+              categories={recipe.data.categories}
+              cuisine={recipe.data.cuisine}
+              tags={recipe.data.tags}
+              dietary={recipe.data.dietary}
+              difficulty={recipe.data.difficulty}
+              prepTimeMinutes={recipe.data.prepTimeMinutes}
+              cookTimeMinutes={recipe.data.cookTimeMinutes}
+              servings={recipe.data.servings}
+              bakingType={recipe.data.bakingType}
+            />
+          ))}
+        </div>
+      ) : (
+        <div class="p-12 text-center bg-white border border-[#EBE5D9] rounded-3xl">
+          <div class="text-4xl mb-3">🥖</div>
+          <h3 class="text-lg font-serif font-bold text-[#4A3F35]">Baking recipes are being curated!</h3>
+          <p class="text-xs text-[#6B5B4F] mt-1 mb-4">Recipes for focaccia, tea cakes, and skillet cookies will be added here shortly.</p>
+          <a href="/" class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#9C4B25] text-white text-xs font-bold rounded-xl shadow-xs">
+            Browse All Stovetop Recipes →
+          </a>
+        </div>
+      )}
+    </div>
+
+  </div>
+</Layout>

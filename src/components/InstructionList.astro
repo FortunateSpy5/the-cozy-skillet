@@ -1,0 +1,219 @@
+---
+export interface InstructionStep {
+  step: number;
+  title?: string;
+  text: string;
+  durationMinutes?: number;
+}
+
+export interface Props {
+  instructions: InstructionStep[];
+}
+
+const { instructions } = Astro.props;
+---
+
+<div class="bg-white rounded-3xl border border-[#EBE5D9] p-6 sm:p-8 shadow-xs" id="instructions-container">
+  <div class="flex items-center justify-between pb-6 border-b border-[#EBE5D9]">
+    <div>
+      <h2 class="text-2xl font-serif font-bold text-[#4A3F35]">Instructions</h2>
+      <p class="text-xs text-[#6B5B4F] mt-0.5">Follow step-by-step. Mark items done as you cook.</p>
+    </div>
+  </div>
+
+  <div class="mt-8 space-y-8">
+    {instructions.map((inst) => (
+      <div class="instruction-card relative flex items-start gap-4 sm:gap-6 p-4 rounded-2xl transition-all border border-transparent hover:border-[#EBE5D9] hover:bg-[#FAF3EE]/40" data-step={inst.step}>
+        <!-- Step Number Badge -->
+        <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#9C4B25] text-white flex items-center justify-center font-bold text-sm sm:text-base shadow-xs step-badge">
+          {inst.step}
+        </div>
+
+        <div class="flex-1 space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            {inst.title && (
+              <h3 class="text-base sm:text-lg font-bold text-[#4A3F35]">
+                {inst.title}
+              </h3>
+            )}
+
+            <!-- Step Timer Button if duration is defined (Accessible min-h-[44px] touch target) -->
+            {inst.durationMinutes && (
+              <button 
+                type="button" 
+                class="step-timer-btn inline-flex items-center gap-2 min-h-[44px] px-3.5 py-2 bg-[#FAF3EE] hover:bg-[#9C4B25] hover:text-white text-[#9C4B25] border border-[#EBE5D9] rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                data-minutes={inst.durationMinutes}
+                aria-label={`Start ${inst.durationMinutes} minute kitchen timer for step ${inst.step}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span class="timer-label">{inst.durationMinutes} min timer</span>
+              </button>
+            )}
+          </div>
+
+          <p class="text-sm sm:text-base text-[#5F5045] leading-relaxed instruction-text">
+            {inst.text}
+          </p>
+
+          <label class="inline-flex items-center gap-2 mt-2 pt-2 text-xs text-[#6B5B4F] cursor-pointer hover:text-[#9C4B25]">
+            <input 
+              type="checkbox" 
+              class="step-checkbox rounded border-[#D5CDC1] text-[#9C4B25] focus:ring-[#9C4B25] w-4 h-4 cursor-pointer" 
+              aria-label={`Mark step ${inst.step} as done`}
+            />
+            <span>Mark step as done</span>
+          </label>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<!-- Active Floating Kitchen Timer Bar (hidden by default, positioned to avoid bottom bar collision, excluded from print) -->
+<div id="floating-timer" class="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 hidden bg-[#4A3F35] text-white p-4 rounded-2xl shadow-xl border border-white/20 items-center gap-4 no-print">
+  <div class="flex items-center gap-2.5">
+    <div class="w-8 h-8 rounded-xl bg-[#9C4B25] flex items-center justify-center animate-pulse" aria-hidden="true">
+      ⏱️
+    </div>
+    <div>
+      <div class="text-[10px] uppercase font-bold tracking-wider text-amber-200">Timer Running</div>
+      <div id="timer-display" class="text-xl font-mono font-bold tracking-tight" role="timer" aria-live="polite">00:00</div>
+    </div>
+  </div>
+  <button id="cancel-timer" class="min-h-[44px] min-w-[44px] px-3.5 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-xl font-medium transition-colors cursor-pointer" aria-label="Cancel active timer">
+    Cancel
+  </button>
+</div>
+
+<script>
+  let timerInterval: number | ReturnType<typeof setInterval> | null = null;
+  let sharedAudioCtx: AudioContext | null = null;
+
+  function getAudioContext(): AudioContext | null {
+    if (!sharedAudioCtx) {
+      const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtxClass) {
+        sharedAudioCtx = new AudioCtxClass();
+      }
+    }
+    if (sharedAudioCtx && sharedAudioCtx.state === 'suspended') {
+      sharedAudioCtx.resume();
+    }
+    return sharedAudioCtx;
+  }
+
+  function playAcousticChime() {
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime); // A5 note
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.8); // Gentle drop to A4
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.8);
+    } catch {
+      // Audio autoplay policy fallback
+    }
+  }
+
+  function setupInstructions() {
+    const container = document.getElementById('instructions-container');
+    if (!container || container.dataset.initialized === 'true') return;
+    container.dataset.initialized = 'true';
+
+    // Step completion toggle
+    const cards = container.querySelectorAll<HTMLElement>('.instruction-card');
+    cards.forEach((card) => {
+      const checkbox = card.querySelector<HTMLInputElement>('.step-checkbox');
+      const text = card.querySelector<HTMLElement>('.instruction-text');
+      const badge = card.querySelector<HTMLElement>('.step-badge');
+
+      checkbox?.addEventListener('change', () => {
+        if (checkbox.checked) {
+          text?.classList.add('opacity-50');
+          badge?.classList.remove('bg-[#9C4B25]');
+          badge?.classList.add('bg-[#4A7C59]'); // Sage green completed
+        } else {
+          text?.classList.remove('opacity-50');
+          badge?.classList.add('bg-[#9C4B25]');
+          badge?.classList.remove('bg-[#4A7C59]');
+        }
+      });
+    });
+
+    // Timer functionality with wall-clock time math (immune to background tab throttling)
+    const timerBar = document.getElementById('floating-timer');
+    const timerDisplay = document.getElementById('timer-display');
+    const cancelBtn = document.getElementById('cancel-timer');
+    const timerButtons = container.querySelectorAll<HTMLButtonElement>('.step-timer-btn');
+
+    cancelBtn?.addEventListener('click', () => {
+      if (timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      timerBar?.classList.add('hidden');
+      timerBar?.classList.remove('flex');
+    });
+
+    timerButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        // Unlock Web Audio context during initial user click gesture
+        getAudioContext();
+
+        const minutes = parseInt(btn.dataset.minutes || '5', 10);
+        const targetEndTime = Date.now() + minutes * 60 * 1000;
+
+        if (timerInterval !== null) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+
+        timerBar?.classList.remove('hidden');
+        timerBar?.classList.add('flex');
+
+        function updateDisplay() {
+          const now = Date.now();
+          const remainingMs = targetEndTime - now;
+          const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+
+          const m = Math.floor(remainingSeconds / 60);
+          const s = remainingSeconds % 60;
+          if (timerDisplay) {
+            timerDisplay.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+          }
+
+          if (remainingSeconds <= 0) {
+            if (timerInterval !== null) {
+              clearInterval(timerInterval);
+              timerInterval = null;
+            }
+            playAcousticChime();
+            if (timerDisplay) timerDisplay.textContent = 'DONE! 🎉';
+            if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+              navigator.vibrate([200, 100, 200]);
+            }
+          }
+        }
+
+        updateDisplay();
+        timerInterval = setInterval(updateDisplay, 500);
+      });
+    });
+  }
+
+  setupInstructions();
+  document.addEventListener('astro:page-load', setupInstructions);
+</script>

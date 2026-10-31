@@ -1,0 +1,49 @@
+---
+import { SITE_CONFIG } from '../data/siteConfig';
+import Logo from './Logo.astro';
+---
+
+<footer class="bg-white border-t border-[#EBE5D9] mt-20 no-print">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+      
+      <!-- Brand & Mission -->
+      <div class="space-y-3">
+        <a href="/" class="hover:opacity-95 transition-opacity inline-block">
+          <Logo size="sm" showWordmark={true} />
+        </a>
+        <p class="text-sm text-[#6B5B4F] leading-relaxed max-w-sm">
+          A personal, functional recipe collection focused on straightforward execution, exact measurements, and delicious food without the life stories.
+        </p>
+      </div>
+
+      <!-- Quick Nav -->
+      <div>
+        <h4 class="text-xs font-bold uppercase tracking-wider text-[#4A3F35] mb-3">Navigation</h4>
+        <ul class="space-y-2 text-sm text-[#6B5B4F]">
+          <li><a href="/" class="hover:text-[#9C4B25] transition-colors">All Recipes</a></li>
+          <li><a href="/baking" class="hover:text-[#9C4B25] transition-colors">🥖 The Baking Hub</a></li>
+          <li><a href="/categories" class="hover:text-[#9C4B25] transition-colors">Categories & Cuisines</a></li>
+          <li><a href="/search" class="hover:text-[#9C4B25] transition-colors">Ingredient & Fridge Search</a></li>
+          <li><a href="/about" class="hover:text-[#9C4B25] transition-colors">About & Philosophy</a></li>
+          <li><a href="/rss.xml" class="hover:text-[#9C4B25] transition-colors">RSS Feed</a></li>
+        </ul>
+      </div>
+
+      <!-- Sister Site & Cozy Network -->
+      <div class="bg-[#FAF3EE] border border-[#EBE5D9] p-4 rounded-2xl space-y-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-[#9C4B25] block">Part of the Cozy Family</span>
+        <h5 class="text-sm font-bold text-[#4A3F35]">Curious about kitchen gear?</h5>
+        <p class="text-xs text-[#6B5B4F] leading-relaxed">
+          Check out our sister project <a href={SITE_CONFIG.sisterSiteUrl} target="_blank" rel="noopener noreferrer" class="font-semibold text-[#9C4B25] underline hover:text-[#7A3617]">{SITE_CONFIG.sisterSiteName}</a> for curated budget cookware, storage hacks, and home essentials.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="border-t border-[#EBE5D9] mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-[#6B5B4F] gap-3">
+      <p>&copy; {new Date().getFullYear()} {SITE_CONFIG.name}. Built with Astro & Tailwind CSS.</p>
+      <p class="italic">Cook simple. Eat well.</p>
+    </div>
+  </div>
+</footer>

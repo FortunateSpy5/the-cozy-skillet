@@ -1,0 +1,90 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { SITE_CONFIG } from '../data/siteConfig';
+---
+
+<Layout 
+  title="About Us & Culinary Philosophy | The Cozy Skillet"
+  description="Learn about The Cozy Skillet's functional-first, zero-fluff recipe philosophy built for real home kitchens."
+>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+    
+    <!-- Hero Title -->
+    <div class="border-b border-[#EBE5D9] pb-8 mb-10">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAF3EE] border border-[#EBE5D9] text-[#9C4B25] text-xs font-bold uppercase tracking-wider mb-4">
+        🍳 Our Culinary Mission
+      </div>
+      <h1 class="text-4xl sm:text-6xl font-serif font-bold text-[#4A3F35] tracking-tight leading-tight mb-4">
+        Cook simple.<br />Eat well.<br />Zero fluff.
+      </h1>
+      <p class="text-base sm:text-xl text-[#5F5045] leading-relaxed">
+        The Cozy Skillet was built to fix the single most frustrating user experience on the internet: recipe blogs that force you to read a 2,000-word autobiography before telling you how much garlic to chop.
+      </p>
+    </div>
+
+    <!-- Core Tenets -->
+    <div class="space-y-12">
+      
+      <!-- Tenet 1 -->
+      <div class="bg-white border border-[#EBE5D9] rounded-3xl p-6 sm:p-8 shadow-xs space-y-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-2xl bg-[#9C4B25] text-white flex items-center justify-center font-bold text-lg shadow-xs">1</span>
+          <h2 class="text-2xl font-serif font-bold text-[#4A3F35]">Immediate Value (Zero Preamble)</h2>
+        </div>
+        <p class="text-sm sm:text-base text-[#5F5045] leading-relaxed pl-13">
+          The moment you open any page on The Cozy Skillet, the ingredients, timings, equipment, and steps are right in front of you. No childhood memories. No travelogues. Just clear, tested culinary instructions.
+        </p>
+      </div>
+
+      <!-- Tenet 2 -->
+      <div class="bg-white border border-[#EBE5D9] rounded-3xl p-6 sm:p-8 shadow-xs space-y-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-2xl bg-[#9C4B25] text-white flex items-center justify-center font-bold text-lg shadow-xs">2</span>
+          <h2 class="text-2xl font-serif font-bold text-[#4A3F35]">Adapted for Indian Kitchen Realities</h2>
+        </div>
+        <p class="text-sm sm:text-base text-[#5F5045] leading-relaxed pl-13">
+          Whether we are making Mediterranean lemon butter chicken, Mexican fajitas, or creamy pasta, every recipe is grounded in Indian kitchen usability:
+        </p>
+        <ul class="space-y-2 text-sm text-[#5F5045] pl-13 list-disc list-inside">
+          <li><strong>Accessible Groceries:</strong> Ingredients available on quick-commerce (Blinkit, Zepto, Instamart) or local sabzi mandis, with common Indian pantry substitutes provided.</li>
+          <li><strong>Dual Units:</strong> Weight in grams (`g`) and milliliters (`ml`) alongside cups and tablespoons.</li>
+          <li><strong>Stovetop & Flame Control:</strong> Instructions calibrated for gas flames, heavy iron tawas, stainless steel kadais, and seasoned cast-iron skillets.</li>
+          <li><strong>Temperatures in Celsius (°C):</strong> Clear OTG / oven rack guidance.</li>
+        </ul>
+      </div>
+
+      <!-- Tenet 3 -->
+      <div class="bg-white border border-[#EBE5D9] rounded-3xl p-6 sm:p-8 shadow-xs space-y-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-2xl bg-[#9C4B25] text-white flex items-center justify-center font-bold text-lg shadow-xs">3</span>
+          <h2 class="text-2xl font-serif font-bold text-[#4A3F35]">Interactive Kitchen Ergonomics</h2>
+        </div>
+        <p class="text-sm sm:text-base text-[#5F5045] leading-relaxed pl-13">
+          Cooking is messy. Our site features:
+        </p>
+        <ul class="space-y-2 text-sm text-[#5F5045] pl-13 list-disc list-inside">
+          <li><strong>Hands-Free Cook Mode:</strong> Uses the <code>Screen Wake Lock API</code> so your phone or tablet display never sleeps while your hands are covered in oil.</li>
+          <li><strong>Dynamic Serving Scaler:</strong> Instant recalculation for 0.5x, 1x, 2x, 3x portions.</li>
+          <li><strong>Integrated Timers:</strong> Clickable step countdowns with pleasant audio chimes.</li>
+          <li><strong>Private Cook's Notes:</strong> Auto-saves your personal recipe tweaks to your browser.</li>
+        </ul>
+      </div>
+
+      <!-- Sister Project Card -->
+      <div class="bg-[#FAF3EE] border border-[#EBE5D9] rounded-3xl p-6 sm:p-8 space-y-3">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-[#9C4B25]">Part of the Cozy Family</span>
+          <a href={SITE_CONFIG.sisterSiteUrl} target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-[#9C4B25] underline hover:text-[#7A3617]">
+            Visit {SITE_CONFIG.sisterSiteName} →
+          </a>
+        </div>
+        <h3 class="text-xl font-serif font-bold text-[#4A3F35]">The Cozy Skillet & The Cozy Cart</h3>
+        <p class="text-sm text-[#5F5045] leading-relaxed">
+          The Cozy Skillet is the companion culinary publication to <strong>The Cozy Cart</strong> (<a href={SITE_CONFIG.sisterSiteUrl} target="_blank" rel="noopener noreferrer" class="text-[#9C4B25] underline font-medium">{SITE_CONFIG.sisterSiteUrl}</a>). While The Cozy Cart curates budget-friendly cookware, kitchen organization tools, and home aesthetics for Indian apartments, The Cozy Skillet delivers the real, practical recipes you make in that cookware.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</Layout>

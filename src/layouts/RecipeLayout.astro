@@ -1,0 +1,279 @@
+---
+import Layout from './Layout.astro';
+import IngredientList from '../components/IngredientList.astro';
+import InstructionList from '../components/InstructionList.astro';
+import CookModeModal from '../components/CookModeModal.astro';
+import CooksNotes from '../components/CooksNotes.astro';
+import { SITE_CONFIG } from '../data/siteConfig';
+import { CATEGORIES } from '../data/categories';
+import type { CollectionEntry } from 'astro:content';
+
+export interface Props {
+  recipe: CollectionEntry<'recipes'>;
+}
+
+const { recipe } = Astro.props;
+const data = recipe.data;
+const totalMinutes = data.prepTimeMinutes + data.cookTimeMinutes;
+const slug = recipe.id.replace(/\.(md|mdx)$/, '');
+
+// Resolve canonical category link for breadcrumb (avoids 404 on Skillet Mains & Curries)
+const primaryCatMeta = CATEGORIES.find(
+  (c) => c.name.toLowerCase() === data.categories[0]?.toLowerCase()
+);
+const categoryHref = primaryCatMeta 
+  ? (primaryCatMeta.slug === 'baking' ? '/baking' : `/category/${primaryCatMeta.slug}`) 
+  : '/categories';
+
+// Construct Schema.org Recipe JSON-LD (Includes mandatory Google Recipe Carousel fields)
+const recipeSchema = {
+  "@type": "Recipe",
+  "name": data.title,
+  "description": data.description,
+  "image": [new URL(data.image, SITE_CONFIG.siteUrl).toString()],
+  "author": {
+    "@type": "Person",
+    "name": SITE_CONFIG.author
+  },
+  "datePublished": data.pubDate.toISOString(),
+  "prepTime": `PT${data.prepTimeMinutes}M`,
+  "cookTime": `PT${data.cookTimeMinutes}M`,
+  "totalTime": `PT${totalMinutes}M`,
+  "recipeYield": `${data.servings} servings`,
+  "recipeCategory": data.categories.join(', '),
+  "recipeCuisine": data.cuisine.join(', '),
+  "keywords": data.tags.join(', '),
+  "recipeIngredient": data.ingredients.flatMap((g) =>
+    g.items.map((i) => `${i.amount ? i.amount + ' ' : ''}${i.unit ? i.unit + ' ' : ''}${i.name}${i.notes ? ' (' + i.notes + ')' : ''}`)
+  ),
+  "recipeInstructions": data.instructions.map((inst) => ({
+    "@type": "HowToStep",
+    "position": inst.step,
+    "name": inst.title || `Step ${inst.step}`,
+    "text": inst.text
+  })),
+  ...(data.nutrition ? {
+    "nutrition": {
+      "@type": "NutritionInformation",
+      "calories": `${data.nutrition.calories} calories`,
+      "proteinContent": data.nutrition.protein,
+      "carbohydrateContent": data.nutrition.carbs,
+      "fatContent": data.nutrition.fat
+    }
+  } : {})
+};
+---
+
+<Layout title={data.title} description={data.description} image={data.image} schema={recipeSchema}>
+  <article class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 recipe-container pb-24 lg:pb-12">
+    
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-2 text-xs text-[#6B5B4F] mb-6 no-print">
+      <a href="/" class="hover:text-[#9C4B25] transition-colors">Recipes</a>
+      <span>/</span>
+      <a href={categoryHref} class="hover:text-[#9C4B25] transition-colors">
+        {data.categories[0] || 'All'}
+      </a>
+      <span>/</span>
+      <span class="text-[#4A3F35] font-semibold truncate max-w-xs">{data.title}</span>
+    </nav>
+
+    <!-- Header & Quick Actions -->
+    <div class="border-b border-[#EBE5D9] pb-8 mb-10 space-y-4">
+      <div class="flex flex-wrap items-center gap-2">
+        {data.categories.map((cat: string) => (
+          <span class="text-xs font-bold uppercase tracking-wider text-[#9C4B25] bg-[#FAF3EE] px-3 py-1 rounded-xl">
+            {cat}
+          </span>
+        ))}
+        {data.bakingType && (
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-900 bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl">
+            🥖 {data.bakingType}
+          </span>
+        )}
+        {data.cuisine.map((c: string) => (
+          <span class="text-xs font-semibold text-[#4A3F35] bg-white border border-[#EBE5D9] px-2.5 py-1 rounded-xl">
+            {c}
+          </span>
+        ))}
+        {data.tags.map((tag: string) => (
+          <span class="text-xs font-medium text-[#4A3F35] bg-[#FDFBF7] border border-[#EBE5D9] px-2.5 py-1 rounded-xl">
+            {tag}
+          </span>
+        ))}
+        {data.dietary.map((tag: string) => (
+          <span class="text-xs font-medium text-[#6B5B4F] bg-white border border-[#EBE5D9] px-2.5 py-1 rounded-xl">
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      <h1 class="text-3xl sm:text-5xl font-serif font-bold text-[#4A3F35] tracking-tight leading-tight">
+        {data.title}
+      </h1>
+
+      <p class="text-base sm:text-lg text-[#5F5045] leading-relaxed max-w-3xl">
+        {data.description}
+      </p>
+
+      <!-- Key Metadata Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 max-w-3xl">
+        <div class="bg-white border border-[#EBE5D9] p-3.5 rounded-2xl text-center shadow-2xs">
+          <span class="block text-[11px] font-bold uppercase text-[#6B5B4F] tracking-wider">Prep Time</span>
+          <span class="block text-lg font-bold text-[#4A3F35]">{data.prepTimeMinutes} mins</span>
+        </div>
+        <div class="bg-white border border-[#EBE5D9] p-3.5 rounded-2xl text-center shadow-2xs">
+          <span class="block text-[11px] font-bold uppercase text-[#6B5B4F] tracking-wider">Cook Time</span>
+          <span class="block text-lg font-bold text-[#4A3F35]">{data.cookTimeMinutes} mins</span>
+        </div>
+        <div class="bg-white border border-[#EBE5D9] p-3.5 rounded-2xl text-center shadow-2xs">
+          <span class="block text-[11px] font-bold uppercase text-[#6B5B4F] tracking-wider">Total Time</span>
+          <span class="block text-lg font-bold text-[#9C4B25]">{totalMinutes} mins</span>
+        </div>
+        <div class="bg-white border border-[#EBE5D9] p-3.5 rounded-2xl text-center shadow-2xs">
+          <span class="block text-[11px] font-bold uppercase text-[#6B5B4F] tracking-wider">Difficulty</span>
+          <span class="block text-lg font-bold text-[#4A3F35]">{data.difficulty}</span>
+        </div>
+      </div>
+
+      <!-- Quick Action Bar -->
+      <div class="flex flex-wrap items-center gap-3 pt-4 no-print">
+        <CookModeModal title={data.title} instructions={data.instructions} />
+
+        <a 
+          href="#ingredients-section" 
+          class="px-4 py-2.5 bg-white hover:bg-[#FAF3EE] border border-[#EBE5D9] text-[#4A3F35] text-sm font-semibold rounded-2xl transition-all shadow-2xs"
+        >
+          Jump to Ingredients ↓
+        </a>
+
+        <a 
+          href="#instructions-section" 
+          class="px-4 py-2.5 bg-white hover:bg-[#FAF3EE] border border-[#EBE5D9] text-[#4A3F35] text-sm font-semibold rounded-2xl transition-all shadow-2xs"
+        >
+          Jump to Steps ↓
+        </a>
+
+        <button 
+          type="button" 
+          onclick="window.print()" 
+          class="ml-auto inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-white hover:bg-[#FAF3EE] border border-[#EBE5D9] text-[#6B5B4F] hover:text-[#4A3F35] text-xs font-semibold rounded-2xl transition-all shadow-2xs cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"/>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            <rect width="12" height="8" x="6" y="14"/>
+          </svg>
+          <span>Print Recipe</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2-COLUMN RESPONSIVE KITCHEN GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start mb-12">
+      
+      <!-- LEFT COLUMN: Sticky Ingredients & Pan Equipment (5 Cols) -->
+      <div class="lg:col-span-5 lg:sticky lg:top-20 space-y-6">
+        <div id="ingredients-section" class="scroll-mt-24">
+          <IngredientList ingredients={data.ingredients} servings={data.servings} recipeTitle={data.title} />
+        </div>
+
+        <!-- Equipment Box -->
+        {data.equipment && data.equipment.length > 0 && (
+          <div class="p-5 bg-white border border-[#EBE5D9] rounded-3xl shadow-xs">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-[#9C4B25] mb-2.5 flex items-center gap-1.5">
+              <span>🍳</span>
+              <span>Cookware & Tools</span>
+            </h4>
+            <div class="flex flex-wrap gap-1.5">
+              {data.equipment.map((item: string) => (
+                <span class="text-xs font-medium bg-[#FAF3EE] text-[#4A3F35] border border-[#EBE5D9] px-2.5 py-1 rounded-xl">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <!-- RIGHT COLUMN: Step-by-Step Instructions & Notes (7 Cols) -->
+      <div class="lg:col-span-7 space-y-8">
+        <div id="instructions-section" class="scroll-mt-24">
+          <InstructionList instructions={data.instructions} />
+        </div>
+
+        <!-- Chef's Notes & Storage -->
+        {data.notes && data.notes.length > 0 && (
+          <div class="bg-[#FAF3EE] border border-[#EBE5D9] rounded-3xl p-6 sm:p-8">
+            <h3 class="text-xl font-serif font-bold text-[#4A3F35] mb-4 flex items-center gap-2">
+              <span>💡 Chef's Notes & Storage</span>
+            </h3>
+            <ul class="space-y-2 text-sm sm:text-base text-[#5F5045]">
+              {data.notes.map((note: string) => (
+                <li class="flex items-start gap-2.5">
+                  <span class="text-[#9C4B25] font-bold">•</span>
+                  <span>{note}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <!-- Private Cook's Notes (Saved in browser localStorage) -->
+        <CooksNotes slug={slug} />
+      </div>
+
+    </div>
+
+    <!-- Nutrition Card (Full Width at Bottom) -->
+    {data.nutrition && (
+      <div class="mb-12 p-6 bg-white border border-[#EBE5D9] rounded-3xl shadow-xs">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-[#6B5B4F] mb-3">Estimated Nutrition (Per Serving)</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+          <div class="bg-[#FDFBF7] p-3 rounded-2xl border border-[#EBE5D9]">
+            <span class="block text-xs text-[#6B5B4F]">Calories</span>
+            <span class="block text-lg font-bold text-[#4A3F35]">{data.nutrition.calories || '—'}</span>
+          </div>
+          <div class="bg-[#FDFBF7] p-3 rounded-2xl border border-[#EBE5D9]">
+            <span class="block text-xs text-[#6B5B4F]">Protein</span>
+            <span class="block text-lg font-bold text-[#4A3F35]">{data.nutrition.protein || '—'}</span>
+          </div>
+          <div class="bg-[#FDFBF7] p-3 rounded-2xl border border-[#EBE5D9]">
+            <span class="block text-xs text-[#6B5B4F]">Carbohydrates</span>
+            <span class="block text-lg font-bold text-[#4A3F35]">{data.nutrition.carbs || '—'}</span>
+          </div>
+          <div class="bg-[#FDFBF7] p-3 rounded-2xl border border-[#EBE5D9]">
+            <span class="block text-xs text-[#6B5B4F]">Fat</span>
+            <span class="block text-lg font-bold text-[#4A3F35]">{data.nutrition.fat || '—'}</span>
+          </div>
+        </div>
+      </div>
+    )}
+
+    <!-- MDX Custom Content (if any extra notes provided) -->
+    <div class="prose mt-8">
+      <slot />
+    </div>
+
+  </article>
+
+  <!-- Mobile Floating Kitchen Dock -->
+  <div class="lg:hidden fixed bottom-4 left-4 right-4 z-40 bg-[#4A3F35]/95 backdrop-blur-md text-white p-2 rounded-2xl shadow-xl border border-white/10 flex items-center justify-around text-xs font-semibold no-print">
+    <a href="#ingredients-section" class="px-3 py-2 rounded-xl hover:bg-white/10 flex items-center gap-1.5 transition-colors">
+      <span>📋</span>
+      <span>Ingredients</span>
+    </a>
+    <a href="#instructions-section" class="px-3 py-2 rounded-xl hover:bg-white/10 flex items-center gap-1.5 transition-colors">
+      <span>🍳</span>
+      <span>Steps</span>
+    </a>
+    <button 
+      type="button" 
+      onclick="document.getElementById('open-cook-mode')?.click()" 
+      class="px-4 py-2 bg-[#9C4B25] hover:bg-[#7A3617] text-white rounded-xl font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+    >
+      <span>⚡</span>
+      <span>Cook Mode</span>
+    </button>
+  </div>
+</Layout>

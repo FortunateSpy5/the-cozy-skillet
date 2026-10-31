@@ -1,0 +1,153 @@
+---
+export interface Props {
+  recipeTitle: string;
+}
+
+const { recipeTitle } = Astro.props;
+---
+
+<div class="mt-4 pt-4 border-t border-[#EBE5D9] flex items-center justify-between gap-2" id="grocery-export-container">
+  <span class="text-xs text-[#6B5B4F] font-medium hidden sm:inline">Shopping for this recipe?</span>
+  <div class="flex items-center gap-2 ml-auto w-full sm:w-auto">
+    <!-- Copy to Clipboard (Accessible min-h-[44px] touch target) -->
+    <button 
+      type="button" 
+      id="copy-grocery-btn"
+      data-title={recipeTitle}
+      class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 min-h-[44px] px-3.5 py-2 bg-[#FAF3EE] hover:bg-[#9C4B25] hover:text-white text-[#9C4B25] border border-[#EBE5D9] rounded-xl text-xs font-semibold transition-all shadow-2xs cursor-pointer"
+      title="Copy ingredients to clipboard"
+      aria-label="Copy ingredients list to clipboard"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+      </svg>
+      <span id="copy-btn-text">Copy Grocery List</span>
+    </button>
+
+    <!-- WhatsApp Share (Accessible min-h-[44px] touch target) -->
+    <button 
+      type="button" 
+      id="whatsapp-grocery-btn"
+      data-title={recipeTitle}
+      class="inline-flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3.5 py-2 bg-[#4A7C59]/10 hover:bg-[#4A7C59] hover:text-white text-[#4A7C59] border border-[#4A7C59]/30 rounded-xl text-xs font-semibold transition-all shadow-2xs cursor-pointer"
+      title="Send shopping list to WhatsApp"
+      aria-label="Send shopping list to WhatsApp"
+    >
+      <span aria-hidden="true">📱</span>
+      <span class="hidden sm:inline">WhatsApp</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  function setupGroceryExport() {
+    const container = document.getElementById('grocery-export-container');
+    if (!container || container.dataset.initialized === 'true') return;
+    container.dataset.initialized = 'true';
+
+    const copyBtn = document.getElementById('copy-grocery-btn') as HTMLButtonElement | null;
+    const whatsappBtn = document.getElementById('whatsapp-grocery-btn') as HTMLButtonElement | null;
+    const copyText = document.getElementById('copy-btn-text');
+    if (!copyBtn) return;
+
+    function getIngredientsText(title: string): string {
+      const rows = document.querySelectorAll('.ingredient-row');
+      const items: string[] = [];
+
+      function extractCleanRow(row: Element): string | null {
+        const textEl = row.querySelector('.ingredient-text');
+        if (!textEl) return null;
+
+        const amountEl = textEl.querySelector('.ingredient-amount');
+        const metricEl = textEl.querySelector('.metric-amount');
+        const metricParent = metricEl?.closest('span');
+
+        // Extract volume amount
+        const amount = amountEl?.textContent?.trim() || '';
+        // Extract metric weight/volume
+        const metric = metricParent?.textContent?.replace(/\s+/g, ' ').trim() || '';
+
+        // Extract remaining text (ingredient name and notes)
+        // Clone textEl and remove metric badge and amount for clean naming
+        const clone = textEl.cloneNode(true) as HTMLElement;
+        clone.querySelector('.ingredient-amount')?.remove();
+        clone.querySelector('.metric-amount')?.closest('span')?.remove();
+        const rawRest = clone.textContent?.replace(/\s+/g, ' ').trim() || '';
+
+        if (metric && amount) {
+          return `• ${amount} (${metric}) ${rawRest}`;
+        } else if (metric) {
+          return `• ${metric} ${rawRest}`;
+        } else if (amount) {
+          return `• ${amount} ${rawRest}`;
+        }
+        return `• ${rawRest}`;
+      }
+
+      rows.forEach((row) => {
+        const checkbox = row.querySelector<HTMLInputElement>('input[type="checkbox"]');
+        if (!checkbox?.checked) {
+          const itemText = extractCleanRow(row);
+          if (itemText) items.push(itemText);
+        }
+      });
+
+      // If all were checked, grab everything
+      if (items.length === 0) {
+        rows.forEach((row) => {
+          const itemText = extractCleanRow(row);
+          if (itemText) items.push(itemText);
+        });
+      }
+
+      return `🛒 *The Cozy Skillet — Grocery List*\n*${title}*\n\n${items.join('\n')}\n\nRecipe: ${window.location.href}`;
+    }
+
+    async function copyToClipboard(text: string) {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // Fallback for older browsers or non-secure contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          (document as unknown as Record<string, (cmd: string) => boolean>)['execCommand']?.('copy');
+        } catch {
+          // Fallback ignored
+        }
+        textArea.remove();
+      }
+    }
+
+    copyBtn.addEventListener('click', async () => {
+      const title = copyBtn.dataset.title || 'Recipe';
+      const text = getIngredientsText(title);
+      try {
+        await copyToClipboard(text);
+        if (copyText) copyText.textContent = 'Copied to Clipboard! ✓';
+        setTimeout(() => {
+          if (copyText) copyText.textContent = 'Copy Grocery List';
+        }, 2500);
+      } catch (err) {
+        console.error('Failed to copy', err);
+      }
+    });
+
+    whatsappBtn?.addEventListener('click', () => {
+      const title = whatsappBtn.dataset.title || copyBtn.dataset.title || 'Recipe';
+      const text = getIngredientsText(title);
+      const encoded = encodeURIComponent(text);
+      window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+    });
+  }
+
+  setupGroceryExport();
+  document.addEventListener('astro:page-load', setupGroceryExport);
+</script>
