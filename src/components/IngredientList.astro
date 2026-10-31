@@ -45,20 +45,21 @@ const calculatedFlourWeight = (() => {
 })();
 ---
 
-<div class="bg-white rounded-3xl border border-[#EBE5D9] p-4 sm:p-6 lg:p-8 shadow-xs" id="ingredient-card" data-is-baking={isBaking ? 'true' : 'false'}>
+<div class="bg-white rounded-3xl border border-[#EBE5D9] p-4 sm:p-6 shadow-xs" id="ingredient-card" data-is-baking={isBaking ? 'true' : 'false'}>
   <!-- Header & Serving Scaler & Unit Preferences -->
-  <div class="flex flex-col lg:flex-row lg:items-center justify-between pb-6 border-b border-[#EBE5D9] gap-4">
+  <div class="pb-5 border-b border-[#EBE5D9] space-y-3">
     <div>
       <h2 class="text-2xl font-serif font-bold text-[#4A3F35]">Ingredients</h2>
       <p class="text-xs text-[#6B5B4F] mt-0.5">Click ingredients to cross them off. Dual weight & volume provided.</p>
     </div>
 
-    <div class="flex flex-wrap items-center gap-3">
-      <!-- Unit Preference Toggle (Dual | Grams | Cups) -->
+    <!-- Controls Toolbar (Units & Servings Scaler) -->
+    <div class="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+      <!-- Unit Preference Toggle (Dual | Grams | Cups | Baker's %) -->
       <div class="flex items-center gap-1 bg-[#FAF3EE] p-1 rounded-2xl border border-[#EBE5D9]">
         <button 
           type="button" 
-          class="unit-pref-btn text-xs font-bold py-1.5 px-2.5 sm:px-3 rounded-xl transition-all bg-[#9C4B25] text-white cursor-pointer" 
+          class="unit-pref-btn text-xs font-bold py-1 px-2.5 sm:px-3 rounded-xl transition-all bg-[#9C4B25] text-white cursor-pointer" 
           data-pref="dual" 
           aria-pressed="true"
           aria-label="Show dual units (cups and grams)"
@@ -67,7 +68,7 @@ const calculatedFlourWeight = (() => {
         </button>
         <button 
           type="button" 
-          class="unit-pref-btn text-xs font-bold py-1.5 px-2.5 sm:px-3 rounded-xl transition-all bg-white text-[#6B5B4F] hover:text-[#9C4B25] cursor-pointer" 
+          class="unit-pref-btn text-xs font-bold py-1 px-2.5 sm:px-3 rounded-xl transition-all bg-white text-[#6B5B4F] hover:text-[#9C4B25] cursor-pointer" 
           data-pref="metric" 
           aria-pressed="false"
           aria-label="Show metric weight in grams"
@@ -76,41 +77,39 @@ const calculatedFlourWeight = (() => {
         </button>
         <button 
           type="button" 
-          class="unit-pref-btn text-xs font-bold py-1.5 px-2.5 sm:px-3 rounded-xl transition-all bg-white text-[#6B5B4F] hover:text-[#9C4B25] cursor-pointer" 
+          class="unit-pref-btn text-xs font-bold py-1 px-2.5 sm:px-3 rounded-xl transition-all bg-white text-[#6B5B4F] hover:text-[#9C4B25] cursor-pointer" 
           data-pref="volume" 
           aria-pressed="false"
           aria-label="Show volume in cups and spoons"
         >
           Cups
         </button>
+        {isBaking && (
+          <button 
+            type="button" 
+            id="bakers-pct-toggle"
+            class="text-xs font-bold py-1 px-2.5 sm:px-3 rounded-xl transition-all bg-white text-[#6B5B4F] hover:text-[#9C4B25] cursor-pointer flex items-center gap-1" 
+            aria-pressed="false"
+            aria-label="Toggle Baker's percentage tags"
+          >
+            <span>⚖️</span>
+            <span>Baker's %</span>
+          </button>
+        )}
       </div>
 
-      <!-- Dedicated Baker's % Toggle (Default OFF, Baking recipes only) -->
-      {isBaking && (
-        <button 
-          type="button" 
-          id="bakers-pct-toggle"
-          class="text-xs font-bold py-1.5 px-2.5 sm:px-3 rounded-2xl transition-all bg-white text-[#6B5B4F] border border-[#EBE5D9] hover:border-[#9C4B25] hover:text-[#9C4B25] cursor-pointer flex items-center gap-1 shadow-2xs" 
-          aria-pressed="false"
-          aria-label="Toggle Baker's percentage tags"
-        >
-          <span>⚖️</span>
-          <span>Baker's %</span>
-        </button>
-      )}
-
-      <!-- Scaler Control (Whole-batch scaling for Baking) -->
-      <div class="flex items-center gap-2 bg-[#FAF3EE] p-1.5 rounded-2xl border border-[#EBE5D9]">
-        <span class="text-xs font-semibold text-[#6B5B4F] px-2 flex items-center gap-1">
+      <!-- Scaler Control -->
+      <div class="flex items-center gap-1.5 bg-[#FAF3EE] p-1 rounded-2xl border border-[#EBE5D9]">
+        <span class="text-xs font-semibold text-[#6B5B4F] px-1.5 flex items-center gap-1">
           <span>{isBaking ? 'Yield:' : 'Servings:'}</span>
           <strong id="display-servings" class="text-[#9C4B25]" data-original={servings}>{servings}</strong>
         </span>
         <div class="flex items-center gap-1">
-          <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer" data-multiplier="0.5" aria-pressed="false" aria-label="Scale ingredients to half servings">0.5x</button>
-          <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-[#9C4B25] text-white shadow-xs cursor-pointer" data-multiplier="1" aria-pressed="true" aria-label="Scale ingredients to 1x original servings">1x</button>
-          <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer" data-multiplier="2" aria-pressed="false" aria-label="Scale ingredients to double servings">2x</button>
+          <button type="button" class="scale-btn text-xs font-bold py-1 px-2.5 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer min-w-[34px]" data-multiplier="0.5" aria-pressed="false" aria-label="Scale ingredients to half servings">0.5x</button>
+          <button type="button" class="scale-btn text-xs font-bold py-1 px-2.5 rounded-xl transition-all bg-[#9C4B25] text-white shadow-xs cursor-pointer min-w-[34px]" data-multiplier="1" aria-pressed="true" aria-label="Scale ingredients to 1x original servings">1x</button>
+          <button type="button" class="scale-btn text-xs font-bold py-1 px-2.5 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer min-w-[34px]" data-multiplier="2" aria-pressed="false" aria-label="Scale ingredients to double servings">2x</button>
           {!isBaking && (
-            <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer" data-multiplier="3" aria-pressed="false" aria-label="Scale ingredients to triple servings">3x</button>
+            <button type="button" class="scale-btn text-xs font-bold py-1 px-2.5 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer min-w-[34px]" data-multiplier="3" aria-pressed="false" aria-label="Scale ingredients to triple servings">3x</button>
           )}
         </div>
       </div>
