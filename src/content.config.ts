@@ -19,11 +19,15 @@ const recipes = defineCollection({
     difficulty: z.enum(['Easy', 'Medium', 'Advanced']).default('Easy'),
     prepTimeMinutes: z.number().default(10),
     cookTimeMinutes: z.number().default(20),
+    proofTimeMinutes: z.number().optional(),
+    hydration: z.union([z.number(), z.string()]).optional(),
+    bakerFlourWeight: z.number().optional(),
     servings: z.number().default(4),
     equipment: z.array(z.string()).default(['Skillet']),
     ingredients: z.array(
       z.object({
-        category: z.string().default('Ingredients'),
+        category: z.string().optional(),
+        groupTitle: z.string().optional(),
         items: z.array(
           z.object({
             name: z.string(),
@@ -32,6 +36,9 @@ const recipes = defineCollection({
             metricAmount: z.union([z.number(), z.string()]).optional(),
             metricUnit: z.string().optional(),
             notes: z.string().optional(),
+            optional: z.boolean().default(false),
+            boosterEffect: z.string().optional(),
+            bakersPercentage: z.number().optional(),
           })
         ),
       })
@@ -42,6 +49,8 @@ const recipes = defineCollection({
         title: z.string().optional(),
         text: z.string(),
         durationMinutes: z.number().optional(),
+        summerDurationMinutes: z.number().optional(),
+        winterDurationMinutes: z.number().optional(),
       })
     ),
     notes: z.array(z.string()).default([]),

@@ -4,75 +4,120 @@ export interface InstructionStep {
   title?: string;
   text: string;
   durationMinutes?: number;
+  summerDurationMinutes?: number;
+  winterDurationMinutes?: number;
 }
 
 export interface Props {
   instructions: InstructionStep[];
+  isBaking?: boolean;
 }
 
-const { instructions } = Astro.props;
+const { instructions, isBaking = false } = Astro.props;
+
+// Check if any step provides seasonal climate-specific proofing durations
+const hasClimateSteps = instructions.some(
+  (inst) => inst.summerDurationMinutes !== undefined || inst.winterDurationMinutes !== undefined
+);
 ---
 
-<div class="bg-white rounded-3xl border border-[#EBE5D9] p-6 sm:p-8 shadow-xs" id="instructions-container">
-  <div class="flex items-center justify-between pb-6 border-b border-[#EBE5D9]">
+<div class="bg-white rounded-3xl border border-[#EBE5D9] p-6 sm:p-8 shadow-xs" id="instructions-container" data-is-baking={isBaking ? 'true' : 'false'}>
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#EBE5D9] gap-4">
     <div>
       <h2 class="text-2xl font-serif font-bold text-[#4A3F35]">Instructions</h2>
       <p class="text-xs text-[#6B5B4F] mt-0.5">Follow step-by-step. Mark items done as you cook.</p>
     </div>
+
+    <!-- Indian Kitchen Climate Toggle for Fermentation / Proofing -->
+    {hasClimateSteps && (
+      <div class="flex items-center gap-2 bg-[#FAF3EE] p-1.5 rounded-2xl border border-[#EBE5D9] self-start sm:self-auto">
+        <span class="text-xs font-semibold text-[#6B5B4F] px-2 flex items-center gap-1">
+          <span>Kitchen:</span>
+        </span>
+        <div class="flex items-center gap-1" id="climate-toggle-group">
+          <button 
+            type="button" 
+            class="climate-btn text-xs font-bold py-1.5 px-3 rounded-xl transition-all bg-[#9C4B25] text-white shadow-2xs cursor-pointer" 
+            data-climate="summer"
+            aria-label="Set proofing timers for warm kitchen (>28°C)"
+          >
+            ☀️ Warm (&gt;28°C)
+          </button>
+          <button 
+            type="button" 
+            class="climate-btn text-xs font-bold py-1.5 px-3 rounded-xl transition-all bg-white text-[#6B5B4F] hover:text-[#9C4B25] shadow-2xs cursor-pointer" 
+            data-climate="winter"
+            aria-label="Set proofing timers for cool kitchen (<24°C)"
+          >
+            ❄️ Cool (&lt;24°C)
+          </button>
+        </div>
+      </div>
+    )}
   </div>
 
   <div class="mt-8 space-y-8">
-    {instructions.map((inst) => (
-      <div class="instruction-card relative flex items-start gap-4 sm:gap-6 p-4 rounded-2xl transition-all border border-transparent hover:border-[#EBE5D9] hover:bg-[#FAF3EE]/40" data-step={inst.step}>
-        <!-- Step Number Badge -->
-        <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#9C4B25] text-white flex items-center justify-center font-bold text-sm sm:text-base shadow-xs step-badge">
-          {inst.step}
-        </div>
+    {instructions.map((inst) => {
+      const hasSeasonal = inst.summerDurationMinutes !== undefined && inst.winterDurationMinutes !== undefined;
+      const initialMinutes = inst.summerDurationMinutes ?? inst.durationMinutes;
 
-        <div class="flex-1 space-y-2">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            {inst.title && (
-              <h3 class="text-base sm:text-lg font-bold text-[#4A3F35]">
-                {inst.title}
-              </h3>
-            )}
-
-            <!-- Step Timer Button if duration is defined (Accessible min-h-[44px] touch target) -->
-            {inst.durationMinutes && (
-              <button 
-                type="button" 
-                class="step-timer-btn inline-flex items-center gap-2 min-h-[44px] px-3.5 py-2 bg-[#FAF3EE] hover:bg-[#9C4B25] hover:text-white text-[#9C4B25] border border-[#EBE5D9] rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
-                data-minutes={inst.durationMinutes}
-                aria-label={`Start ${inst.durationMinutes} minute kitchen timer for step ${inst.step}`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
-                </svg>
-                <span class="timer-label">{inst.durationMinutes} min timer</span>
-              </button>
-            )}
+      return (
+        <div class="instruction-card relative flex items-start gap-4 sm:gap-6 p-4 rounded-2xl transition-all border border-transparent hover:border-[#EBE5D9] hover:bg-[#FAF3EE]/40" data-step={inst.step}>
+          <!-- Step Number Badge -->
+          <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#9C4B25] text-white flex items-center justify-center font-bold text-sm sm:text-base shadow-xs step-badge">
+            {inst.step}
           </div>
 
-          <p class="text-sm sm:text-base text-[#5F5045] leading-relaxed instruction-text">
-            {inst.text}
-          </p>
+          <div class="flex-1 space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              {inst.title && (
+                <h3 class="text-base sm:text-lg font-bold text-[#4A3F35]">
+                  {inst.title}
+                </h3>
+              )}
 
-          <label class="inline-flex items-center gap-2 mt-2 pt-2 text-xs text-[#6B5B4F] cursor-pointer hover:text-[#9C4B25]">
-            <input 
-              type="checkbox" 
-              class="step-checkbox rounded border-[#D5CDC1] text-[#9C4B25] focus:ring-[#9C4B25] w-4 h-4 cursor-pointer" 
-              aria-label={`Mark step ${inst.step} as done`}
-            />
-            <span>Mark step as done</span>
-          </label>
+              <!-- Step Timer Button -->
+              {(initialMinutes || hasSeasonal) && (
+                <button 
+                  type="button" 
+                  class="step-timer-btn inline-flex items-center gap-2 min-h-[44px] px-3.5 py-2 bg-[#FAF3EE] hover:bg-[#9C4B25] hover:text-white text-[#9C4B25] border border-[#EBE5D9] rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                  data-minutes={initialMinutes}
+                  data-summer={inst.summerDurationMinutes}
+                  data-winter={inst.winterDurationMinutes}
+                  data-base-duration={inst.durationMinutes}
+                  aria-label={`Start timer for step ${inst.step}`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  <span class="timer-label">
+                    {hasSeasonal ? `${initialMinutes}m proof (Summer)` : `${initialMinutes} min timer`}
+                  </span>
+                </button>
+              )}
+            </div>
+
+            <p class="text-sm sm:text-base text-[#5F5045] leading-relaxed instruction-text">
+              {inst.text}
+            </p>
+
+            <label class="inline-flex items-center gap-2 mt-2 pt-2 text-xs text-[#6B5B4F] cursor-pointer hover:text-[#9C4B25]">
+              <input 
+                type="checkbox" 
+                class="step-checkbox rounded border-[#D5CDC1] text-[#9C4B25] focus:ring-[#9C4B25] w-4 h-4 cursor-pointer" 
+                aria-label={`Mark step ${inst.step} as done`}
+              />
+              <span>Mark step as done</span>
+            </label>
+          </div>
         </div>
-      </div>
-    ))}
+      );
+    })}
   </div>
 </div>
 
-<!-- Active Floating Kitchen Timer Bar (hidden by default, positioned to avoid bottom bar collision, excluded from print) -->
+<!-- Active Floating Kitchen Timer Bar -->
 <div id="floating-timer" class="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 hidden bg-[#4A3F35] text-white p-4 rounded-2xl shadow-xl border border-white/20 items-center gap-4 no-print">
   <div class="flex items-center gap-2.5">
     <div class="w-8 h-8 rounded-xl bg-[#9C4B25] flex items-center justify-center animate-pulse" aria-hidden="true">
@@ -153,11 +198,47 @@ const { instructions } = Astro.props;
       });
     });
 
+    // Climate Preset Toggle
+    const climateBtns = container.querySelectorAll<HTMLButtonElement>('.climate-btn');
+    const timerButtons = container.querySelectorAll<HTMLButtonElement>('.step-timer-btn');
+
+    function setClimate(climate: 'summer' | 'winter') {
+      climateBtns.forEach((btn) => {
+        if (btn.dataset.climate === climate) {
+          btn.classList.add('bg-[#9C4B25]', 'text-white');
+          btn.classList.remove('bg-white', 'text-[#6B5B4F]');
+        } else {
+          btn.classList.remove('bg-[#9C4B25]', 'text-white');
+          btn.classList.add('bg-white', 'text-[#6B5B4F]');
+        }
+      });
+
+      timerButtons.forEach((btn) => {
+        const summerVal = btn.dataset.summer;
+        const winterVal = btn.dataset.winter;
+        const labelSpan = btn.querySelector<HTMLElement>('.timer-label');
+
+        if (summerVal && winterVal) {
+          const val = climate === 'summer' ? summerVal : winterVal;
+          btn.dataset.minutes = val;
+          if (labelSpan) {
+            labelSpan.textContent = climate === 'summer' ? `${val}m proof (Summer)` : `${val}m proof (Winter)`;
+          }
+        }
+      });
+    }
+
+    climateBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const c = (btn.dataset.climate || 'summer') as 'summer' | 'winter';
+        setClimate(c);
+      });
+    });
+
     // Timer functionality with wall-clock time math (immune to background tab throttling)
     const timerBar = document.getElementById('floating-timer');
     const timerDisplay = document.getElementById('timer-display');
     const cancelBtn = document.getElementById('cancel-timer');
-    const timerButtons = container.querySelectorAll<HTMLButtonElement>('.step-timer-btn');
 
     cancelBtn?.addEventListener('click', () => {
       if (timerInterval !== null) {
@@ -170,7 +251,7 @@ const { instructions } = Astro.props;
 
     timerButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
-        // Unlock Web Audio context during initial user click gesture
+        // Unlock Web Audio context during user click gesture
         getAudioContext();
 
         const minutes = parseInt(btn.dataset.minutes || '5', 10);

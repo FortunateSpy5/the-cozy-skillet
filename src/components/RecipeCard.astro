@@ -10,8 +10,12 @@ export interface Props {
   difficulty: string;
   prepTimeMinutes: number;
   cookTimeMinutes: number;
+  proofTimeMinutes?: number;
+  hydration?: number | string;
   servings: number;
   bakingType?: string;
+  image?: string;
+  imageAlt?: string;
 }
 
 const {
@@ -21,23 +25,50 @@ const {
   categories,
   cuisine,
   tags = [],
-  dietary,
+  dietary = [],
   difficulty,
   prepTimeMinutes,
   cookTimeMinutes,
+  proofTimeMinutes,
+  hydration,
   servings,
   bakingType,
+  image,
+  imageAlt,
 } = Astro.props;
 
-const totalMinutes = prepTimeMinutes + cookTimeMinutes;
+const totalMinutes = prepTimeMinutes + cookTimeMinutes + (proofTimeMinutes || 0);
 const primaryCategory = categories[0] || 'Recipe';
 const primaryCuisine = cuisine.join(', ');
+
+// Curate display badges to prevent visual clutter (max 3-4 key badges)
+const displayTag = tags[0];
+const displayDietary = dietary.slice(0, 2);
 ---
 
 <a 
   href={`/recipes/${slug}`} 
-  class="group flex flex-col bg-white rounded-3xl border border-[#EBE5D9] hover:border-[#9C4B25]/40 hover:shadow-lg transition-all duration-200 overflow-hidden"
+  class="recipe-card group flex flex-col bg-white rounded-3xl border border-[#EBE5D9] hover:border-[#9C4B25]/40 hover:shadow-lg transition-all duration-200 overflow-hidden"
+  data-title={title.toLowerCase()}
+  data-description={description.toLowerCase()}
+  data-categories={categories.map((c) => c.toLowerCase()).join(' ')}
+  data-dietary={dietary.map((d) => d.toLowerCase()).join(' ')}
+  data-tags={tags.map((t) => t.toLowerCase()).join(' ')}
+  data-cuisine={cuisine.map((c) => c.toLowerCase()).join(' ')}
 >
+  {image && (
+    <div class="relative w-full aspect-[16/10] overflow-hidden bg-[#FAF3EE] border-b border-[#EBE5D9]/60">
+      <img 
+        src={image} 
+        alt={imageAlt || title} 
+        loading="lazy" 
+        decoding="async"
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out" 
+      />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+    </div>
+  )}
+
   <div class="p-6 sm:p-7 flex-1 flex flex-col justify-between">
     <div>
       <!-- Top badges: Categories & Difficulty -->
@@ -62,34 +93,43 @@ const primaryCuisine = cuisine.join(', ');
     </div>
 
     <div>
-      <!-- Cuisine & Practical Badges -->
-      <div class="flex flex-wrap gap-1.5 mb-5">
-        <span class="text-[11px] font-semibold text-[#9C4B25] bg-[#FAF3EE] px-2 py-0.5 rounded-lg">
+      <!-- Focused, High-Signal Badges -->
+      <div class="flex flex-wrap items-center gap-1.5 mb-5">
+        <span class="text-[11px] font-semibold text-[#9C4B25] bg-[#FAF3EE] px-2 py-0.5 rounded-lg border border-[#EBE5D9]/60">
           {primaryCuisine}
         </span>
-        {tags.map((tag) => (
-          <span class="text-[11px] font-medium text-[#4A3F35] bg-[#FDFBF7] border border-[#EBE5D9] px-2 py-0.5 rounded-lg">
-            {tag}
+        {hydration && (
+          <span class="text-[11px] font-semibold text-amber-900 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
+            💧 {typeof hydration === 'number' ? `${hydration}%` : hydration} Hydration
           </span>
-        ))}
-        {dietary.map((d) => (
-          <span class="text-[11px] font-medium text-[#6B5B4F] bg-[#FDFBF7] border border-[#EBE5D9] px-2 py-0.5 rounded-lg">
+        )}
+        {displayTag && (
+          <span class="text-[11px] font-medium text-[#4A3F35] bg-[#FDFBF7] border border-[#EBE5D9] px-2 py-0.5 rounded-lg">
+            {displayTag}
+          </span>
+        )}
+        {displayDietary.map((d) => (
+          <span class={`text-[11px] font-medium px-2 py-0.5 rounded-lg border ${d.toLowerCase() === 'vegetarian' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-[#FDFBF7] text-[#6B5B4F] border-[#EBE5D9]'}`}>
             {d}
           </span>
         ))}
       </div>
 
-      <!-- Metadata footer -->
+      <!-- Metadata footer: Split active hands-on time vs passive proof time -->
       <div class="pt-4 border-t border-[#EBE5D9] flex items-center justify-between text-xs text-[#6B5B4F]">
-        <div class="flex items-center gap-1.5 font-medium">
+        <div class="flex items-center gap-1.5 font-medium" title={proofTimeMinutes ? `${prepTimeMinutes}m active prep, ${proofTimeMinutes}m passive rise, ${cookTimeMinutes}m bake` : `${prepTimeMinutes} minutes prep, ${cookTimeMinutes} minutes active cook`}>
           <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-[#9C4B25]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <polyline points="12 6 12 12 16 14"/>
           </svg>
-          <span>{totalMinutes} mins total</span>
+          {proofTimeMinutes ? (
+            <span>{prepTimeMinutes}m active • {proofTimeMinutes}m rise • {cookTimeMinutes}m bake <span class="text-[#9C4B25] font-semibold">({totalMinutes}m)</span></span>
+          ) : (
+            <span>{prepTimeMinutes}m prep • {cookTimeMinutes}m cook <span class="text-[#9C4B25] font-semibold">({totalMinutes}m total)</span></span>
+          )}
         </div>
         <div class="flex items-center gap-1 font-medium">
-          <span>Serves {servings}</span>
+          <span>{bakingType ? `Yields ${servings}` : `Serves ${servings}`}</span>
         </div>
       </div>
     </div>

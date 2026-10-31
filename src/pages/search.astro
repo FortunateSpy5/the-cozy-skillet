@@ -15,6 +15,8 @@ const searchIndex = recipes.map((r) => ({
   prepTimeMinutes: r.data.prepTimeMinutes,
   cookTimeMinutes: r.data.cookTimeMinutes,
   servings: r.data.servings,
+  image: r.data.image,
+  imageAlt: r.data.imageAlt,
   ingredients: r.data.ingredients.flatMap((g) => g.items.map((i) => i.name.toLowerCase())),
 }));
 ---
@@ -59,25 +61,35 @@ const searchIndex = recipes.map((r) => ({
           href={`/recipes/${r.slug}`}
           class="recipe-search-item flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 bg-white border border-[#EBE5D9] rounded-2xl hover:border-[#9C4B25] transition-all group"
         >
-          <div>
-            <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-              <span class="text-xs font-bold uppercase tracking-wider text-[#9C4B25]">
-                {r.categories[0] || 'Recipe'}
-              </span>
-              <span class="text-xs text-[#6B5B4F]">•</span>
-              <span class="text-xs text-[#6B5B4F]">{r.cuisine.join(', ')}</span>
-              {r.tags.map((tag: string) => (
-                <span class="text-[10px] bg-[#FAF3EE] text-[#4A3F35] px-2 py-0.5 rounded-md font-medium border border-[#EBE5D9]">
-                  {tag}
+          <div class="flex items-center gap-4">
+            {r.image && (
+              <img 
+                src={r.image} 
+                alt={r.imageAlt || r.title} 
+                class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shrink-0 border border-[#EBE5D9]" 
+                loading="lazy"
+              />
+            )}
+            <div>
+              <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#9C4B25]">
+                  {r.categories[0] || 'Recipe'}
                 </span>
-              ))}
+                <span class="text-xs text-[#6B5B4F]">•</span>
+                <span class="text-xs text-[#6B5B4F]">{r.cuisine.join(', ')}</span>
+                {r.tags.slice(0, 2).map((tag: string) => (
+                  <span class="text-[10px] bg-[#FAF3EE] text-[#4A3F35] px-2 py-0.5 rounded-md font-medium border border-[#EBE5D9]">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <h3 class="text-lg font-serif font-bold text-[#4A3F35] group-hover:text-[#9C4B25] transition-colors">
+                {r.title}
+              </h3>
+              <p class="text-xs text-[#5F5045] line-clamp-1 mt-1">
+                {r.description}
+              </p>
             </div>
-            <h3 class="text-lg font-serif font-bold text-[#4A3F35] group-hover:text-[#9C4B25] transition-colors">
-              {r.title}
-            </h3>
-            <p class="text-xs text-[#5F5045] line-clamp-1 mt-1">
-              {r.description}
-            </p>
           </div>
 
           <div class="flex items-center gap-3 text-xs text-[#6B5B4F] flex-shrink-0">

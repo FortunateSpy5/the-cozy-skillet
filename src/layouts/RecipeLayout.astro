@@ -14,10 +14,11 @@ export interface Props {
 
 const { recipe } = Astro.props;
 const data = recipe.data;
-const totalMinutes = data.prepTimeMinutes + data.cookTimeMinutes;
+const isBaking = data.categories.includes('Baking');
+const totalMinutes = data.prepTimeMinutes + data.cookTimeMinutes + (data.proofTimeMinutes || 0);
 const slug = recipe.id.replace(/\.(md|mdx)$/, '');
 
-// Resolve canonical category link for breadcrumb (avoids 404 on Skillet Mains & Curries)
+// Resolve canonical category link for breadcrumb
 const primaryCatMeta = CATEGORIES.find(
   (c) => c.name.toLowerCase() === data.categories[0]?.toLowerCase()
 );
@@ -25,7 +26,7 @@ const categoryHref = primaryCatMeta
   ? (primaryCatMeta.slug === 'baking' ? '/baking' : `/category/${primaryCatMeta.slug}`) 
   : '/categories';
 
-// Construct Schema.org Recipe JSON-LD (Includes mandatory Google Recipe Carousel fields)
+// Construct Schema.org Recipe JSON-LD
 const recipeSchema = {
   "@type": "Recipe",
   "name": data.title,
@@ -37,9 +38,9 @@ const recipeSchema = {
   },
   "datePublished": data.pubDate.toISOString(),
   "prepTime": `PT${data.prepTimeMinutes}M`,
-  "cookTime": `PT${data.cookTimeMinutes}M`,
+  "cookTime": `PT${data.cookTimeMinutes + (data.proofTimeMinutes || 0)}M`,
   "totalTime": `PT${totalMinutes}M`,
-  "recipeYield": `${data.servings} servings`,
+  "recipeYield": `${data.servings} ${isBaking ? 'portions / yield' : 'servings'}`,
   "recipeCategory": data.categories.join(', '),
   "recipeCuisine": data.cuisine.join(', '),
   "keywords": data.tags.join(', '),
@@ -91,6 +92,11 @@ const recipeSchema = {
             🥖 {data.bakingType}
           </span>
         )}
+        {data.hydration && (
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-900 bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl">
+            💧 {typeof data.hydration === 'number' ? `${data.hydration}%` : data.hydration} Hydration
+          </span>
+        )}
         {data.cuisine.map((c: string) => (
           <span class="text-xs font-semibold text-[#4A3F35] bg-white border border-[#EBE5D9] px-2.5 py-1 rounded-xl">
             {c}
@@ -116,21 +122,27 @@ const recipeSchema = {
         {data.description}
       </p>
 
-      <!-- Key Metadata Grid -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 max-w-3xl">
+      <!-- Key Metadata Grid (Adaptive for Baking rise vs active times) -->
+      <div class={`grid ${data.proofTimeMinutes ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4'} gap-3 pt-3 max-w-4xl`}>
         <div class="bg-white border border-[#EBE5D9] p-3.5 rounded-2xl text-center shadow-2xs">
-          <span class="block text-[11px] font-bold uppercase text-[#6B5B4F] tracking-wider">Prep Time</span>
+          <span class="block text-[11px] font-bold uppercase text-[#6B5B4F] tracking-wider">{data.proofTimeMinutes ? 'Active Prep' : 'Prep Time'}</span>
           <span class="block text-lg font-bold text-[#4A3F35]">{data.prepTimeMinutes} mins</span>
         </div>
+        {data.proofTimeMinutes && (
+          <div class="bg-white border border-[#EBE5D9] p-3.5 rounded-2xl text-center shadow-2xs">
+            <span class="block text-[11px] font-bold uppercase text-[#6B5B4F] tracking-wider">Proof / Rise</span>
+            <span class="block text-lg font-bold text-[#4A3F35]">{data.proofTimeMinutes} mins</span>
+          </div>
+        )}
         <div class="bg-white border border-[#EBE5D9] p-3.5 rounded-2xl text-center shadow-2xs">
-          <span class="block text-[11px] font-bold uppercase text-[#6B5B4F] tracking-wider">Cook Time</span>
+          <span class="block text-[11px] font-bold uppercase text-[#6B5B4F] tracking-wider">{isBaking ? 'Bake Time' : 'Cook Time'}</span>
           <span class="block text-lg font-bold text-[#4A3F35]">{data.cookTimeMinutes} mins</span>
         </div>
         <div class="bg-white border border-[#EBE5D9] p-3.5 rounded-2xl text-center shadow-2xs">
           <span class="block text-[11px] font-bold uppercase text-[#6B5B4F] tracking-wider">Total Time</span>
           <span class="block text-lg font-bold text-[#9C4B25]">{totalMinutes} mins</span>
         </div>
-        <div class="bg-white border border-[#EBE5D9] p-3.5 rounded-2xl text-center shadow-2xs">
+        <div class={`bg-white border border-[#EBE5D9] p-3.5 rounded-2xl text-center shadow-2xs ${data.proofTimeMinutes ? 'col-span-2 sm:col-span-1' : ''}`}>
           <span class="block text-[11px] font-bold uppercase text-[#6B5B4F] tracking-wider">Difficulty</span>
           <span class="block text-lg font-bold text-[#4A3F35]">{data.difficulty}</span>
         </div>
@@ -169,21 +181,39 @@ const recipeSchema = {
       </div>
     </div>
 
+    <!-- Recipe Hero Image -->
+    {data.image && (
+      <div class="mb-10 rounded-3xl overflow-hidden border border-[#EBE5D9] bg-[#FAF3EE] shadow-sm">
+        <img 
+          src={data.image} 
+          alt={data.imageAlt || data.title} 
+          class="w-full h-64 sm:h-80 md:h-[420px] object-cover" 
+          loading="eager"
+        />
+      </div>
+    )}
+
     <!-- 2-COLUMN RESPONSIVE KITCHEN GRID -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start mb-12">
       
       <!-- LEFT COLUMN: Sticky Ingredients & Pan Equipment (5 Cols) -->
       <div class="lg:col-span-5 lg:sticky lg:top-20 space-y-6">
         <div id="ingredients-section" class="scroll-mt-24">
-          <IngredientList ingredients={data.ingredients} servings={data.servings} recipeTitle={data.title} />
+          <IngredientList 
+            ingredients={data.ingredients} 
+            servings={data.servings} 
+            recipeTitle={data.title}
+            isBaking={isBaking}
+            bakerFlourWeight={data.bakerFlourWeight}
+          />
         </div>
 
         <!-- Equipment Box -->
         {data.equipment && data.equipment.length > 0 && (
           <div class="p-5 bg-white border border-[#EBE5D9] rounded-3xl shadow-xs">
             <h4 class="text-xs font-bold uppercase tracking-wider text-[#9C4B25] mb-2.5 flex items-center gap-1.5">
-              <span>🍳</span>
-              <span>Cookware & Tools</span>
+              <span>{isBaking ? '🥖' : '🍳'}</span>
+              <span>{isBaking ? 'Baking Pans & Tools' : 'Cookware & Tools'}</span>
             </h4>
             <div class="flex flex-wrap gap-1.5">
               {data.equipment.map((item: string) => (
@@ -199,14 +229,17 @@ const recipeSchema = {
       <!-- RIGHT COLUMN: Step-by-Step Instructions & Notes (7 Cols) -->
       <div class="lg:col-span-7 space-y-8">
         <div id="instructions-section" class="scroll-mt-24">
-          <InstructionList instructions={data.instructions} />
+          <InstructionList 
+            instructions={data.instructions} 
+            isBaking={isBaking}
+          />
         </div>
 
         <!-- Chef's Notes & Storage -->
         {data.notes && data.notes.length > 0 && (
           <div class="bg-[#FAF3EE] border border-[#EBE5D9] rounded-3xl p-6 sm:p-8">
             <h3 class="text-xl font-serif font-bold text-[#4A3F35] mb-4 flex items-center gap-2">
-              <span>💡 Chef's Notes & Storage</span>
+              <span>💡 Chef's Notes & Kitchen Substitutions</span>
             </h3>
             <ul class="space-y-2 text-sm sm:text-base text-[#5F5045]">
               {data.notes.map((note: string) => (
@@ -250,7 +283,7 @@ const recipeSchema = {
       </div>
     )}
 
-    <!-- MDX Custom Content (if any extra notes provided) -->
+    <!-- MDX Custom Content -->
     <div class="prose mt-8">
       <slot />
     </div>

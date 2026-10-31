@@ -6,13 +6,33 @@ import { CATEGORIES } from '../data/categories';
 
 const recipes = await getCollection('recipes');
 const sortedRecipes = [...recipes].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Only display categories with published recipes on the homepage filter bar
+const activeCategories = CATEGORIES.map((cat) => {
+  const count = recipes.filter((r) =>
+    r.data.categories.some((c: string) => c.toLowerCase() === cat.name.toLowerCase())
+  ).length;
+  return { ...cat, count };
+}).filter((cat) => cat.count > 0);
+
+// Client-side search index for instant filtering
+const recipeSearchData = sortedRecipes.map((r) => ({
+  slug: r.id.replace(/\.(md|mdx)$/, ''),
+  title: r.data.title.toLowerCase(),
+  description: r.data.description.toLowerCase(),
+  categories: r.data.categories.map((c: string) => c.toLowerCase()),
+  cuisine: r.data.cuisine.map((c: string) => c.toLowerCase()),
+  tags: r.data.tags.map((t: string) => t.toLowerCase()),
+  dietary: r.data.dietary.map((d: string) => d.toLowerCase()),
+  ingredients: r.data.ingredients.flatMap((g) => g.items.map((i) => i.name.toLowerCase())),
+}));
 ---
 
 <Layout title="Home | The Cozy Skillet">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
     
     <!-- Hero Banner -->
-    <div class="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+    <div class="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
       <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF3EE] border border-[#EBE5D9] text-[#9C4B25] text-xs font-bold uppercase tracking-wider mb-4">
         🍳 Practical Home Cooking
       </div>
@@ -24,44 +44,96 @@ const sortedRecipes = [...recipes].sort((a, b) => b.data.pubDate.valueOf() - a.d
       </p>
     </div>
 
-    <!-- Quick Filter Bar -->
-    <div class="flex items-center justify-between flex-wrap gap-4 mb-8 pb-4 border-b border-[#EBE5D9]">
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-xs font-bold text-[#6B5B4F] uppercase tracking-wider mr-1">Categories:</span>
+    <!-- Search & Filter Controls -->
+    <div class="space-y-4 mb-8 pb-6 border-b border-[#EBE5D9]" id="filter-section">
+      <!-- Search Bar & Deep Search Link -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="relative flex-1 max-w-md">
+          <input 
+            type="search" 
+            id="home-search-input" 
+            placeholder="Type 'paneer', 'chicken', 'cheddar', 'one-pan'..." 
+            aria-label="Filter recipes instantly"
+            class="w-full px-4 py-2.5 pl-10 bg-white border border-[#EBE5D9] rounded-2xl text-xs sm:text-sm text-[#4A3F35] placeholder:text-[#6B5B4F]/60 focus:border-[#9C4B25] focus:ring-2 focus:ring-[#9C4B25]/20 focus:outline-none transition-all shadow-2xs"
+          />
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B5B4F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.3-4.3"/>
+          </svg>
+        </div>
+
         <a 
-          href="/" 
-          class="text-xs font-bold px-3 py-1.5 rounded-xl bg-[#9C4B25] text-white shadow-2xs"
+          href="/search" 
+          class="text-xs font-semibold text-[#9C4B25] hover:underline flex items-center justify-end gap-1 shrink-0 py-1"
         >
-          All ({recipes.length})
+          <span>Search by fridge ingredients</span>
+          <span>→</span>
         </a>
-        {CATEGORIES.map((cat) => {
-          const count = recipes.filter((r) =>
-            r.data.categories.some((c: string) => c.toLowerCase() === cat.name.toLowerCase())
-          ).length;
-          const href = cat.slug === 'baking' ? '/baking' : `/category/${cat.slug}`;
-          return (
-            <a 
-              href={href} 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-white text-[#4A3F35] border border-[#EBE5D9] hover:border-[#9C4B25] hover:text-[#9C4B25] transition-colors"
-            >
-              <span>{cat.emoji} {cat.name}</span>
-              {count > 0 && <span class="text-[10px] text-[#6B5B4F] ml-1">({count})</span>}
-            </a>
-          );
-        })}
       </div>
 
-      <a 
-        href="/search" 
-        class="text-xs font-semibold text-[#9C4B25] hover:underline flex items-center gap-1"
-      >
-        <span>Search by ingredient</span>
-        <span>→</span>
-      </a>
+      <!-- Category Filter Pills (Zero-count categories hidden) -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-xs font-bold text-[#6B5B4F] uppercase tracking-wider mr-1">Category:</span>
+        <button 
+          type="button"
+          class="cat-filter-btn text-xs font-bold px-3 py-1.5 rounded-xl bg-[#9C4B25] text-white shadow-2xs cursor-pointer transition-colors"
+          data-cat="all"
+        >
+          All ({recipes.length})
+        </button>
+        {activeCategories.map((cat) => (
+          <button 
+            type="button"
+            class="cat-filter-btn text-xs font-semibold px-3 py-1.5 rounded-xl bg-white text-[#4A3F35] border border-[#EBE5D9] hover:border-[#9C4B25] hover:text-[#9C4B25] cursor-pointer transition-colors"
+            data-cat={cat.name.toLowerCase()}
+          >
+            <span>{cat.emoji} {cat.name}</span>
+            <span class="text-[10px] text-[#6B5B4F] ml-1">({cat.count})</span>
+          </button>
+        ))}
+      </div>
+
+      <!-- Dietary Quick-Filter Pills -->
+      <div class="flex items-center gap-2 flex-wrap pt-1">
+        <span class="text-xs font-bold text-[#6B5B4F] uppercase tracking-wider mr-1">Diet:</span>
+        <button 
+          type="button"
+          class="diet-filter-btn text-xs font-bold px-3 py-1 rounded-xl bg-[#FAF3EE] text-[#9C4B25] border border-[#9C4B25]/40 cursor-pointer transition-colors"
+          data-diet="all"
+        >
+          All Diets
+        </button>
+        <button 
+          type="button"
+          class="diet-filter-btn text-xs font-medium px-3 py-1 rounded-xl bg-white text-[#4A3F35] border border-[#EBE5D9] hover:border-[#4A7C59] hover:text-[#4A7C59] cursor-pointer transition-colors"
+          data-diet="vegetarian"
+        >
+          🌱 Vegetarian
+        </button>
+        <button 
+          type="button"
+          class="diet-filter-btn text-xs font-medium px-3 py-1 rounded-xl bg-white text-[#4A3F35] border border-[#EBE5D9] hover:border-[#9C4B25] hover:text-[#9C4B25] cursor-pointer transition-colors"
+          data-diet="high-protein"
+        >
+          💪 High-Protein
+        </button>
+        <button 
+          type="button"
+          class="diet-filter-btn text-xs font-medium px-3 py-1 rounded-xl bg-white text-[#4A3F35] border border-[#EBE5D9] hover:border-[#9C4B25] hover:text-[#9C4B25] cursor-pointer transition-colors"
+          data-diet="gluten-free"
+        >
+          🌾 Gluten-Free
+        </button>
+      </div>
+
+      <!-- Status Count -->
+      <div class="text-xs font-medium text-[#6B5B4F] pt-1" id="filter-status-count">
+        Showing all {recipes.length} recipes
+      </div>
     </div>
 
     <!-- Recipe Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8" id="recipes-grid" data-index={JSON.stringify(recipeSearchData)}>
       {sortedRecipes.map((recipe) => (
         <RecipeCard
           slug={recipe.id.replace(/\.(md|mdx)$/, '')}
@@ -74,11 +146,188 @@ const sortedRecipes = [...recipes].sort((a, b) => b.data.pubDate.valueOf() - a.d
           difficulty={recipe.data.difficulty}
           prepTimeMinutes={recipe.data.prepTimeMinutes}
           cookTimeMinutes={recipe.data.cookTimeMinutes}
+          proofTimeMinutes={recipe.data.proofTimeMinutes}
+          hydration={recipe.data.hydration}
           servings={recipe.data.servings}
           bakingType={recipe.data.bakingType}
+          image={recipe.data.image}
+          imageAlt={recipe.data.imageAlt}
         />
       ))}
     </div>
 
+    <!-- Empty Results Fallback -->
+    <div id="home-no-results" class="hidden text-center py-12 px-6 bg-white border border-[#EBE5D9] rounded-3xl mt-6">
+      <div class="text-3xl mb-2">🍳</div>
+      <h3 class="text-lg font-serif font-bold text-[#4A3F35]">No recipes match your criteria</h3>
+      <p class="text-xs text-[#6B5B4F] mt-1 mb-4">Try clearing your search query or choosing a different dietary preference.</p>
+      <button 
+        type="button" 
+        id="reset-filters-btn" 
+        class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#9C4B25] text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer hover:bg-[#7A3617] transition-colors"
+      >
+        Clear All Filters
+      </button>
+    </div>
+
   </div>
 </Layout>
+
+<script>
+  interface RecipeIndexItem {
+    slug: string;
+    title: string;
+    description: string;
+    categories: string[];
+    cuisine: string[];
+    tags: string[];
+    dietary: string[];
+    ingredients: string[];
+  }
+
+  function initHomeFilters() {
+    const grid = document.getElementById('recipes-grid');
+    const searchInput = document.getElementById('home-search-input') as HTMLInputElement | null;
+    const countEl = document.getElementById('filter-status-count');
+    const noResults = document.getElementById('home-no-results');
+    const resetBtn = document.getElementById('reset-filters-btn');
+    if (!grid || grid.dataset.initialized === 'true') return;
+    grid.dataset.initialized = 'true';
+
+    let data: RecipeIndexItem[] = [];
+    try {
+      data = JSON.parse(grid.dataset.index || '[]');
+    } catch {
+      data = [];
+    }
+
+    const cards = grid.querySelectorAll<HTMLElement>('.recipe-card');
+    const catBtns = document.querySelectorAll<HTMLButtonElement>('.cat-filter-btn');
+    const dietBtns = document.querySelectorAll<HTMLButtonElement>('.diet-filter-btn');
+
+    let activeCat = 'all';
+    let activeDiet = 'all';
+    let query = '';
+
+    function applyFilters() {
+      const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      let visibleCount = 0;
+
+      data.forEach((item, idx) => {
+        const card = cards[idx];
+        if (!card) return;
+
+        // Check Category filter
+        const matchesCat = activeCat === 'all' || item.categories.includes(activeCat);
+
+        // Check Dietary filter
+        const matchesDiet = activeDiet === 'all' || item.dietary.includes(activeDiet);
+
+        // Check Search query tokens
+        const matchesSearch = tokens.length === 0 || tokens.every((token) => {
+          return item.title.includes(token) ||
+            item.description.includes(token) ||
+            item.categories.some((c) => c.includes(token)) ||
+            item.cuisine.some((c) => c.includes(token)) ||
+            item.tags.some((t) => t.includes(token)) ||
+            item.dietary.some((d) => d.includes(token)) ||
+            item.ingredients.some((ing) => ing.includes(token));
+        });
+
+        if (matchesCat && matchesDiet && matchesSearch) {
+          card.style.display = 'flex';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      // Update counter
+      if (countEl) {
+        if (tokens.length > 0) {
+          countEl.textContent = `Found ${visibleCount} ${visibleCount === 1 ? 'recipe' : 'recipes'} matching "${query}"`;
+        } else if (activeCat !== 'all' || activeDiet !== 'all') {
+          countEl.textContent = `Showing ${visibleCount} ${visibleCount === 1 ? 'recipe' : 'recipes'} in selected filters`;
+        } else {
+          countEl.textContent = `Showing all ${data.length} recipes`;
+        }
+      }
+
+      // Handle empty state
+      if (visibleCount === 0) {
+        noResults?.classList.remove('hidden');
+      } else {
+        noResults?.classList.add('hidden');
+      }
+    }
+
+    // Category button click
+    catBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        catBtns.forEach((b) => {
+          b.classList.remove('bg-[#9C4B25]', 'text-white', 'shadow-2xs');
+          b.classList.add('bg-white', 'text-[#4A3F35]', 'border', 'border-[#EBE5D9]');
+        });
+        btn.classList.add('bg-[#9C4B25]', 'text-white', 'shadow-2xs');
+        btn.classList.remove('bg-white', 'text-[#4A3F35]', 'border', 'border-[#EBE5D9]');
+
+        activeCat = btn.dataset.cat || 'all';
+        applyFilters();
+      });
+    });
+
+    // Dietary button click
+    dietBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        dietBtns.forEach((b) => {
+          b.classList.remove('bg-[#FAF3EE]', 'text-[#9C4B25]', 'border-[#9C4B25]/40', 'font-bold');
+          b.classList.add('bg-white', 'text-[#4A3F35]', 'border-[#EBE5D9]', 'font-medium');
+        });
+        btn.classList.add('bg-[#FAF3EE]', 'text-[#9C4B25]', 'border-[#9C4B25]/40', 'font-bold');
+        btn.classList.remove('bg-white', 'text-[#4A3F35]', 'border-[#EBE5D9]', 'font-medium');
+
+        activeDiet = btn.dataset.diet || 'all';
+        applyFilters();
+      });
+    });
+
+    // Search input
+    searchInput?.addEventListener('input', () => {
+      query = searchInput.value;
+      applyFilters();
+    });
+
+    // Reset button
+    resetBtn?.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      query = '';
+      activeCat = 'all';
+      activeDiet = 'all';
+
+      catBtns.forEach((b, idx) => {
+        if (idx === 0) {
+          b.classList.add('bg-[#9C4B25]', 'text-white', 'shadow-2xs');
+          b.classList.remove('bg-white', 'text-[#4A3F35]', 'border', 'border-[#EBE5D9]');
+        } else {
+          b.classList.remove('bg-[#9C4B25]', 'text-white', 'shadow-2xs');
+          b.classList.add('bg-white', 'text-[#4A3F35]', 'border', 'border-[#EBE5D9]');
+        }
+      });
+
+      dietBtns.forEach((b, idx) => {
+        if (idx === 0) {
+          b.classList.add('bg-[#FAF3EE]', 'text-[#9C4B25]', 'border-[#9C4B25]/40', 'font-bold');
+          b.classList.remove('bg-white', 'text-[#4A3F35]', 'border-[#EBE5D9]', 'font-medium');
+        } else {
+          b.classList.remove('bg-[#FAF3EE]', 'text-[#9C4B25]', 'border-[#9C4B25]/40', 'font-bold');
+          b.classList.add('bg-white', 'text-[#4A3F35]', 'border-[#EBE5D9]', 'font-medium');
+        }
+      });
+
+      applyFilters();
+    });
+  }
+
+  initHomeFilters();
+  document.addEventListener('astro:page-load', initHomeFilters);
+</script>
