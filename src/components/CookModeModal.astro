@@ -576,6 +576,13 @@ const { title, instructions } = Astro.props;
         if (focusableElements.length > 0) {
           const first = focusableElements[0];
           const last = focusableElements[focusableElements.length - 1];
+
+          if (!modal.contains(document.activeElement)) {
+            e.preventDefault();
+            first.focus();
+            return;
+          }
+
           if (e.shiftKey && document.activeElement === first) {
             e.preventDefault();
             last.focus();
@@ -583,6 +590,8 @@ const { title, instructions } = Astro.props;
             e.preventDefault();
             first.focus();
           }
+        } else {
+          e.preventDefault();
         }
         return;
       }

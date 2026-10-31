@@ -95,21 +95,3 @@ export const CUISINES: CuisineMeta[] = [
     description: 'Bold culinary mashups blending global formats with aromatic Indian spices.',
   },
 ];
-
-export function slugify(text: string): string {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w\-]+/g, '')
-    .replace(/\-\-+/g, '-');
-}
-
-export function getCategoryBySlug(slug: string): CategoryMeta | undefined {
-  return CATEGORIES.find((c) => c.slug === slug);
-}
-
-export function getCuisineBySlug(slug: string): CuisineMeta | undefined {
-  return CUISINES.find((c) => c.slug === slug);
-}

@@ -127,7 +127,7 @@ const hasClimateSteps = instructions.some(
       ⏱️
     </div>
     <div>
-      <div class="text-[10px] uppercase font-bold tracking-wider text-amber-200">Timer Running</div>
+      <div id="timer-status-label" class="text-[10px] uppercase font-bold tracking-wider text-amber-200">Timer Running</div>
       <div id="timer-display" class="text-xl font-mono font-bold tracking-tight" role="timer" aria-label="Active step timer">00:00</div>
       <div id="timer-announcer" class="sr-only" role="status" aria-live="polite"></div>
     </div>
@@ -244,6 +244,7 @@ const hasClimateSteps = instructions.some(
     // Timer functionality with wall-clock time math (immune to background tab throttling)
     const timerBar = document.getElementById('floating-timer');
     const timerDisplay = document.getElementById('timer-display');
+    const timerStatusLabel = document.getElementById('timer-status-label');
     const timerAnnouncer = document.getElementById('timer-announcer');
     const cancelBtn = document.getElementById('cancel-timer');
 
@@ -252,9 +253,16 @@ const hasClimateSteps = instructions.some(
         clearInterval(timerInterval);
         timerInterval = null;
       }
-      if (timerAnnouncer) timerAnnouncer.textContent = 'Active timer cancelled.';
+      if (timerAnnouncer) timerAnnouncer.textContent = 'Active timer closed.';
       timerBar?.classList.add('hidden');
-      timerBar?.classList.remove('flex');
+      timerBar?.classList.remove('flex', 'bg-emerald-900', 'border-emerald-400', 'animate-pulse');
+      timerBar?.classList.add('bg-[#4A3F35]', 'border-white/20');
+      if (timerStatusLabel) {
+        timerStatusLabel.textContent = 'Timer Running';
+        timerStatusLabel.classList.remove('text-emerald-200');
+        timerStatusLabel.classList.add('text-amber-200');
+      }
+      if (cancelBtn) cancelBtn.textContent = 'Cancel';
     });
 
     timerButtons.forEach((btn) => {
@@ -272,8 +280,15 @@ const hasClimateSteps = instructions.some(
 
         if (timerAnnouncer) timerAnnouncer.textContent = `Timer started for ${minutes} minutes.`;
 
-        timerBar?.classList.remove('hidden');
-        timerBar?.classList.add('flex');
+        // Reset timer bar state
+        timerBar?.classList.remove('hidden', 'bg-emerald-900', 'border-emerald-400', 'animate-pulse');
+        timerBar?.classList.add('flex', 'bg-[#4A3F35]', 'border-white/20');
+        if (timerStatusLabel) {
+          timerStatusLabel.textContent = 'Timer Running';
+          timerStatusLabel.classList.remove('text-emerald-200');
+          timerStatusLabel.classList.add('text-amber-200');
+        }
+        if (cancelBtn) cancelBtn.textContent = 'Cancel';
 
         function updateDisplay() {
           const now = Date.now();
@@ -293,6 +308,16 @@ const hasClimateSteps = instructions.some(
             }
             playAcousticChime();
             if (timerDisplay) timerDisplay.textContent = 'DONE! 🎉';
+            if (timerBar) {
+              timerBar.classList.remove('bg-[#4A3F35]', 'border-white/20');
+              timerBar.classList.add('bg-emerald-900', 'border-emerald-400', 'animate-pulse');
+            }
+            if (timerStatusLabel) {
+              timerStatusLabel.textContent = 'Timer Complete!';
+              timerStatusLabel.classList.remove('text-amber-200');
+              timerStatusLabel.classList.add('text-emerald-200');
+            }
+            if (cancelBtn) cancelBtn.textContent = 'Dismiss';
             if (timerAnnouncer) timerAnnouncer.textContent = 'Timer complete! Cooking step finished.';
             if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
               navigator.vibrate([200, 100, 200]);
