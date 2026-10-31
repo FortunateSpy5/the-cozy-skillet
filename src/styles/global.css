@@ -75,6 +75,15 @@
   color: #7A3617;
 }
 
+/* Ensure Netlify Drawer and external feedback badges never block Cook Mode */
+body:has(#cook-mode-modal.flex) [id*="netlify"],
+body:has(#cook-mode-modal.flex) iframe[src*="netlify"],
+body:has(#cook-mode-modal.flex) [data-netlify-drawer] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* Print styling for recipes - clean, ink-friendly, zero nav/footer */
 @media print {
   header, footer, .no-print, #floating-timer, button {
