@@ -132,7 +132,7 @@ const allDietary = Array.from(new Set(recipes.flatMap((r) => r.data.dietary)));
             const count = recipes.filter((r) => r.data.tags.includes(tag)).length;
             return (
               <a 
-                href={`/search`}
+                href={`/search?q=${encodeURIComponent(tag)}`}
                 class="bg-[#FAF3EE] border border-[#EBE5D9] px-3.5 py-2 rounded-xl flex items-center gap-2 hover:border-[#9C4B25] transition-colors"
               >
                 <span class="text-sm font-bold text-[#9C4B25]">{tag}</span>
@@ -145,12 +145,15 @@ const allDietary = Array.from(new Set(recipes.flatMap((r) => r.data.dietary)));
           {allDietary.map((d) => {
             const count = recipes.filter((r) => r.data.dietary.includes(d)).length;
             return (
-              <div class="bg-white border border-[#EBE5D9] px-3.5 py-2 rounded-xl flex items-center gap-2">
+              <a 
+                href={`/search?q=${encodeURIComponent(d)}`}
+                class="bg-white border border-[#EBE5D9] px-3.5 py-2 rounded-xl flex items-center gap-2 hover:border-[#9C4B25] transition-colors"
+              >
                 <span class="text-sm font-medium text-[#4A3F35]">{d}</span>
                 <span class="text-xs bg-[#FAF3EE] text-[#6B5B4F] px-2 py-0.5 rounded-full font-semibold">
                   {count}
                 </span>
-              </div>
+              </a>
             );
           })}
         </div>

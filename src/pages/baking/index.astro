@@ -52,32 +52,35 @@ const bakingBuckets = [
     </div>
 
     <!-- 3 Core Baking Buckets Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-      {bakingBuckets.map((bucket) => {
-        const count = bakingRecipes.filter((r) => r.data.bakingType === bucket.name).length;
-        return (
-          <a href="#baking-recipes" class="group bg-white border border-[#EBE5D9] p-6 rounded-3xl shadow-xs hover:border-[#9C4B25] hover:shadow-md transition-all flex flex-col justify-between">
-            <div>
-              <div class="w-12 h-12 rounded-2xl bg-[#FAF3EE] group-hover:bg-[#9C4B25]/10 flex items-center justify-center text-2xl mb-4 border border-[#EBE5D9] transition-colors">
-                {bucket.emoji}
+    <div class="mb-16">
+      <h2 class="text-xl font-serif font-bold text-[#4A3F35] mb-6">Explore Baking Disciplines</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {bakingBuckets.map((bucket) => {
+          const count = bakingRecipes.filter((r) => r.data.bakingType === bucket.name).length;
+          return (
+            <a href="#baking-recipes" class="group bg-white border border-[#EBE5D9] p-6 rounded-3xl shadow-xs hover:border-[#9C4B25] hover:shadow-md transition-all flex flex-col justify-between">
+              <div>
+                <div class="w-12 h-12 rounded-2xl bg-[#FAF3EE] group-hover:bg-[#9C4B25]/10 flex items-center justify-center text-2xl mb-4 border border-[#EBE5D9] transition-colors">
+                  {bucket.emoji}
+                </div>
+                <h3 class="text-xl font-serif font-bold text-[#4A3F35] group-hover:text-[#9C4B25] transition-colors mb-2">{bucket.name}</h3>
+                <p class="text-xs text-[#5F5045] leading-relaxed">{bucket.description}</p>
               </div>
-              <h3 class="text-xl font-serif font-bold text-[#4A3F35] group-hover:text-[#9C4B25] transition-colors mb-2">{bucket.name}</h3>
-              <p class="text-xs text-[#5F5045] leading-relaxed">{bucket.description}</p>
-            </div>
-            <div class="mt-4 pt-4 border-t border-[#EBE5D9] flex items-center justify-between text-xs font-semibold text-[#9C4B25]">
-              <span>{count} {count === 1 ? 'recipe' : 'recipes'}</span>
-              <span class="group-hover:translate-x-0.5 transition-transform">Browse ↓</span>
-            </div>
-          </a>
-        );
-      })}
+              <div class="mt-4 pt-4 border-t border-[#EBE5D9] flex items-center justify-between text-xs font-semibold text-[#9C4B25]">
+                <span>{count} {count === 1 ? 'recipe' : 'recipes'}</span>
+                <span class="group-hover:translate-x-0.5 transition-transform">Browse ↓</span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
     </div>
 
     <!-- Baker's Principles Banner -->
     <div class="mb-16 bg-[#FAF3EE] border border-[#EBE5D9] rounded-3xl p-6 sm:p-8">
-      <h3 class="text-lg font-serif font-bold text-[#4A3F35] mb-4 flex items-center gap-2">
+      <h2 class="text-lg font-serif font-bold text-[#4A3F35] mb-4 flex items-center gap-2">
         <span>⚖️ The Cozy Skillet Baker's Creed</span>
-      </h3>
+      </h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs text-[#5F5045] leading-relaxed">
         <div>
           <strong class="block text-[#4A3F35] font-bold mb-1">1. Grams First</strong>
@@ -101,7 +104,7 @@ const bakingBuckets = [
       </h2>
       {bakingRecipes.length > 0 ? (
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {bakingRecipes.map((recipe) => (
+          {bakingRecipes.map((recipe, index) => (
             <RecipeCard
               slug={recipe.id.replace(/\.(md|mdx)$/, '')}
               title={recipe.data.title}
@@ -119,6 +122,7 @@ const bakingBuckets = [
               bakingType={recipe.data.bakingType}
               image={recipe.data.image}
               imageAlt={recipe.data.imageAlt}
+              priority={index < 3}
             />
           ))}
         </div>

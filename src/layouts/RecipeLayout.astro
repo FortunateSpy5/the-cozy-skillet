@@ -27,6 +27,19 @@ const categoryHref = primaryCatMeta
   ? (primaryCatMeta.slug === 'baking' ? '/baking' : `/category/${primaryCatMeta.slug}`) 
   : '/categories';
 
+const recipeCanonicalUrl = new URL(`/recipes/${slug}/`, SITE_CONFIG.siteUrl).toString();
+const categoryCanonicalUrl = new URL(categoryHref, SITE_CONFIG.siteUrl).toString();
+
+const dietMap: Record<string, string> = {
+  'Vegetarian': 'https://schema.org/VegetarianDiet',
+  'Vegan': 'https://schema.org/VeganDiet',
+  'Gluten-Free': 'https://schema.org/GlutenFreeDiet',
+  'Low-Carb': 'https://schema.org/LowCarbDiet',
+};
+const suitableForDiet = data.dietary
+  ? data.dietary.map((d: string) => dietMap[d]).filter(Boolean)
+  : [];
+
 // Construct Schema.org Recipe JSON-LD
 const recipeSchema = {
   "@type": "Recipe",
@@ -35,16 +48,18 @@ const recipeSchema = {
   "image": [new URL(data.image, SITE_CONFIG.siteUrl).toString()],
   "author": {
     "@type": "Person",
-    "name": SITE_CONFIG.author
+    "name": SITE_CONFIG.author,
+    "url": SITE_CONFIG.siteUrl
   },
   "datePublished": data.pubDate.toISOString(),
   "prepTime": `PT${data.prepTimeMinutes}M`,
-  "cookTime": `PT${data.cookTimeMinutes + (data.proofTimeMinutes || 0)}M`,
+  ...(data.cookTimeMinutes > 0 ? { "cookTime": `PT${data.cookTimeMinutes}M` } : {}),
   "totalTime": `PT${totalMinutes}M`,
   "recipeYield": `${data.servings} ${isBaking ? 'portions / yield' : 'servings'}`,
   "recipeCategory": data.categories.join(', '),
   "recipeCuisine": data.cuisine.join(', '),
   "keywords": data.tags.join(', '),
+  ...(suitableForDiet.length > 0 ? { "suitableForDiet": suitableForDiet } : {}),
   "recipeIngredient": data.ingredients.flatMap((g) =>
     g.items.map((i) => `${i.amount ? i.amount + ' ' : ''}${i.unit ? i.unit + ' ' : ''}${i.name}${i.notes ? ' (' + i.notes + ')' : ''}`)
   ),
@@ -52,11 +67,13 @@ const recipeSchema = {
     "@type": "HowToStep",
     "position": inst.step,
     "name": inst.title || `Step ${inst.step}`,
-    "text": inst.text
+    "text": inst.text,
+    "url": `${recipeCanonicalUrl}#step-${inst.step}`
   })),
   ...(data.nutrition ? {
     "nutrition": {
       "@type": "NutritionInformation",
+      "servingSize": "1 serving",
       "calories": `${data.nutrition.calories} calories`,
       "proteinContent": data.nutrition.protein,
       "carbohydrateContent": data.nutrition.carbs,
@@ -64,9 +81,33 @@ const recipeSchema = {
     }
   } : {})
 };
+
+const breadcrumbSchema = {
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": SITE_CONFIG.siteUrl
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": data.categories[0] || "Recipes",
+      "item": categoryCanonicalUrl
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": data.title,
+      "item": recipeCanonicalUrl
+    }
+  ]
+};
 ---
 
-<Layout title={data.title} description={data.description} image={data.image} schema={recipeSchema}>
+<Layout title={data.title} description={data.description} image={data.image} schema={[recipeSchema, breadcrumbSchema]}>
   <article class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-12 recipe-container pb-24 lg:pb-12">
     
     <!-- Breadcrumbs -->
@@ -199,6 +240,10 @@ const recipeSchema = {
         <img 
           src={data.image} 
           alt={data.imageAlt || data.title} 
+          width="1200"
+          height="675"
+          fetchpriority="high"
+          decoding="async"
           class="w-full h-64 sm:h-80 md:h-[420px] object-cover" 
           loading="eager"
         />
@@ -312,20 +357,22 @@ const recipeSchema = {
     <button 
       type="button" 
       id="mobile-peek-ingredients-btn"
-      class="px-3 py-2 rounded-xl hover:bg-white/10 flex items-center gap-1.5 transition-colors cursor-pointer"
+      class="min-h-[44px] px-3.5 py-2.5 rounded-xl hover:bg-white/10 flex items-center gap-1.5 transition-colors cursor-pointer"
       aria-label="Open ingredients drawer"
+      aria-haspopup="dialog"
+      aria-expanded="false"
     >
       <span>📋</span>
       <span>Ingredients</span>
     </button>
-    <a href="#instructions-section" class="px-3 py-2 rounded-xl hover:bg-white/10 flex items-center gap-1.5 transition-colors">
+    <a href="#instructions-section" class="min-h-[44px] px-3.5 py-2.5 rounded-xl hover:bg-white/10 flex items-center gap-1.5 transition-colors">
       <span>🍳</span>
       <span>Steps</span>
     </a>
     <button 
       type="button" 
-      onclick="document.getElementById('open-cook-mode')?.click()" 
-      class="px-4 py-2 bg-[#9C4B25] hover:bg-[#7A3617] text-white rounded-xl font-bold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+      id="dock-open-cook-mode"
+      class="min-h-[44px] px-4 py-2.5 bg-[#9C4B25] hover:bg-[#7A3617] text-white rounded-xl font-bold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
     >
       <span>⚡</span>
       <span>Cook Mode</span>
@@ -351,7 +398,7 @@ const recipeSchema = {
         <button 
           type="button" 
           id="close-drawer-btn"
-          class="w-9 h-9 rounded-full bg-[#FAF3EE] hover:bg-[#EBE5D9] text-[#4A3F35] flex items-center justify-center font-bold text-base cursor-pointer transition-colors"
+          class="w-11 h-11 min-h-[44px] min-w-[44px] rounded-full bg-[#FAF3EE] hover:bg-[#EBE5D9] text-[#4A3F35] flex items-center justify-center font-bold text-base cursor-pointer transition-colors"
           aria-label="Close ingredients drawer"
         >
           ✕
@@ -377,10 +424,14 @@ const recipeSchema = {
                       {item.notes && <span class="text-[#6B5B4F] text-[10px] italic block">({item.notes})</span>}
                     </span>
                     <span class="font-bold text-[#9C4B25] shrink-0 text-right">
-                      {item.amount !== undefined && <span>{item.amount} {item.unit}</span>}
+                      {item.amount !== undefined && (
+                        <span class="drawer-volume-part">
+                          <span class="drawer-ingredient-amount" data-base={typeof item.amount === 'number' ? item.amount : ''}>{item.amount}</span> {item.unit}
+                        </span>
+                      )}
                       {item.metricAmount !== undefined && (
-                        <span class="text-[11px] font-semibold text-[#6B5B4F] bg-[#FAF3EE] px-1.5 py-0.5 rounded-md border border-[#EBE5D9] ml-1">
-                          {item.metricAmount}{item.metricUnit}
+                        <span class="drawer-metric-part text-[11px] font-semibold text-[#6B5B4F] bg-[#FAF3EE] px-1.5 py-0.5 rounded-md border border-[#EBE5D9] ml-1">
+                          <span class="drawer-metric-amount" data-base={item.metricAmount}>{item.metricAmount}</span>{item.metricUnit}
                         </span>
                       )}
                     </span>
@@ -393,18 +444,18 @@ const recipeSchema = {
       </div>
 
       <!-- Drawer Footer -->
-      <div class="p-3 bg-white border-t border-[#EBE5D9] flex items-center justify-between">
+      <div class="p-3 bg-white border-t border-[#EBE5D9] flex items-center justify-between pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <a 
           href="#ingredients-section" 
           id="drawer-jump-full-btn"
-          class="text-xs text-[#9C4B25] font-bold hover:underline py-1.5 px-3"
+          class="text-xs text-[#9C4B25] font-bold hover:underline py-2 px-3 min-h-[44px] flex items-center"
         >
           View Full Interactive List ↓
         </a>
         <button 
           type="button" 
           id="drawer-done-btn"
-          class="px-4 py-2 bg-[#9C4B25] text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer"
+          class="px-4 py-2.5 min-h-[44px] bg-[#9C4B25] text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer flex items-center"
         >
           Back to Recipe
         </button>
@@ -424,17 +475,22 @@ const recipeSchema = {
     const closeBtn = document.getElementById('close-drawer-btn');
     const doneBtn = document.getElementById('drawer-done-btn');
     const jumpFullBtn = document.getElementById('drawer-jump-full-btn');
+    const dockCookModeBtn = document.getElementById('dock-open-cook-mode');
 
     if (!openBtn) return;
 
     function openDrawer() {
       drawer?.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
+      openBtn?.setAttribute('aria-expanded', 'true');
+      closeBtn?.focus();
     }
 
     function closeDrawer() {
       drawer?.classList.add('hidden');
       document.body.style.overflow = '';
+      openBtn?.setAttribute('aria-expanded', 'false');
+      openBtn?.focus();
     }
 
     openBtn.addEventListener('click', openDrawer);
@@ -442,6 +498,16 @@ const recipeSchema = {
     closeBtn?.addEventListener('click', closeDrawer);
     doneBtn?.addEventListener('click', closeDrawer);
     jumpFullBtn?.addEventListener('click', closeDrawer);
+
+    drawer.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDrawer();
+      }
+    });
+
+    dockCookModeBtn?.addEventListener('click', () => {
+      document.getElementById('open-cook-mode')?.click();
+    });
   }
 
   // Kitchen Screen Wake Lock Toggle with visibilitychange auto-reacquisition

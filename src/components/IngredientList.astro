@@ -129,7 +129,7 @@ const calculatedFlourWeight = (() => {
         <span class="text-sm">🥣</span>
         <span>Mise-en-Place Prep Checklist</span>
       </span>
-      <span id="prep-progress-text" class="text-[#9C4B25] font-bold">0 of 0 prepped (0%)</span>
+      <span id="prep-progress-text" class="text-[#9C4B25] font-bold" aria-live="polite">0 of 0 prepped (0%)</span>
     </div>
     <div class="w-full bg-[#FAF3EE] rounded-full h-1.5 overflow-hidden border border-[#EBE5D9]">
       <div id="prep-progress-bar" class="bg-[#4A7C59] h-full rounded-full transition-all duration-300 w-0"></div>
@@ -276,6 +276,20 @@ const calculatedFlourWeight = (() => {
         }
       });
 
+      // Synchronize Mobile Quick-Peek Drawer unit view as well
+      const drawerVolumeParts = document.querySelectorAll<HTMLElement>('.drawer-volume-part');
+      const drawerMetricParts = document.querySelectorAll<HTMLElement>('.drawer-metric-part');
+      if (pref === 'metric') {
+        drawerVolumeParts.forEach((p) => (p.style.display = 'none'));
+        drawerMetricParts.forEach((p) => (p.style.display = 'inline-block'));
+      } else if (pref === 'volume') {
+        drawerVolumeParts.forEach((p) => (p.style.display = 'inline'));
+        drawerMetricParts.forEach((p) => (p.style.display = 'none'));
+      } else {
+        drawerVolumeParts.forEach((p) => (p.style.display = 'inline'));
+        drawerMetricParts.forEach((p) => (p.style.display = 'inline-block'));
+      }
+
       try {
         localStorage.setItem(STORAGE_KEY, pref);
       } catch (e) {
@@ -331,8 +345,8 @@ const calculatedFlourWeight = (() => {
     const displayServings = document.getElementById('display-servings');
     const originalServings = Number(displayServings?.dataset.original || 4);
     const scaleBtns = card.querySelectorAll<HTMLButtonElement>('.scale-btn');
-    const amountElements = card.querySelectorAll<HTMLElement>('.ingredient-amount');
-    const metricElements = card.querySelectorAll<HTMLElement>('.metric-amount');
+    const amountElements = document.querySelectorAll<HTMLElement>('.ingredient-amount, .drawer-ingredient-amount');
+    const metricElements = document.querySelectorAll<HTMLElement>('.metric-amount, .drawer-metric-amount');
 
     function formatAmount(val: number): string {
       const rounded = Math.round(val * 100) / 100;

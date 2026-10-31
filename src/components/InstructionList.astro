@@ -128,7 +128,8 @@ const hasClimateSteps = instructions.some(
     </div>
     <div>
       <div class="text-[10px] uppercase font-bold tracking-wider text-amber-200">Timer Running</div>
-      <div id="timer-display" class="text-xl font-mono font-bold tracking-tight" role="timer" aria-live="polite">00:00</div>
+      <div id="timer-display" class="text-xl font-mono font-bold tracking-tight" role="timer" aria-label="Active step timer">00:00</div>
+      <div id="timer-announcer" class="sr-only" role="status" aria-live="polite"></div>
     </div>
   </div>
   <button id="cancel-timer" class="min-h-[44px] min-w-[44px] px-3.5 py-2 text-xs bg-white/10 hover:bg-white/20 rounded-xl font-medium transition-colors cursor-pointer" aria-label="Cancel active timer">
@@ -243,6 +244,7 @@ const hasClimateSteps = instructions.some(
     // Timer functionality with wall-clock time math (immune to background tab throttling)
     const timerBar = document.getElementById('floating-timer');
     const timerDisplay = document.getElementById('timer-display');
+    const timerAnnouncer = document.getElementById('timer-announcer');
     const cancelBtn = document.getElementById('cancel-timer');
 
     cancelBtn?.addEventListener('click', () => {
@@ -250,6 +252,7 @@ const hasClimateSteps = instructions.some(
         clearInterval(timerInterval);
         timerInterval = null;
       }
+      if (timerAnnouncer) timerAnnouncer.textContent = 'Active timer cancelled.';
       timerBar?.classList.add('hidden');
       timerBar?.classList.remove('flex');
     });
@@ -266,6 +269,8 @@ const hasClimateSteps = instructions.some(
           clearInterval(timerInterval);
           timerInterval = null;
         }
+
+        if (timerAnnouncer) timerAnnouncer.textContent = `Timer started for ${minutes} minutes.`;
 
         timerBar?.classList.remove('hidden');
         timerBar?.classList.add('flex');
@@ -288,6 +293,7 @@ const hasClimateSteps = instructions.some(
             }
             playAcousticChime();
             if (timerDisplay) timerDisplay.textContent = 'DONE! 🎉';
+            if (timerAnnouncer) timerAnnouncer.textContent = 'Timer complete! Cooking step finished.';
             if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
               navigator.vibrate([200, 100, 200]);
             }
@@ -299,6 +305,14 @@ const hasClimateSteps = instructions.some(
       });
     });
   }
+
+  // Cleanup active intervals on navigation
+  document.addEventListener('astro:before-swap', () => {
+    if (timerInterval !== null) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+  });
 
   setupInstructions();
   document.addEventListener('astro:page-load', setupInstructions);

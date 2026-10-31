@@ -144,7 +144,7 @@ const { recipeTitle } = Astro.props;
       const title = whatsappBtn.dataset.title || copyBtn.dataset.title || 'Recipe';
       const text = getIngredientsText(title);
       const encoded = encodeURIComponent(text);
-      window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+      window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank', 'noopener,noreferrer');
     });
   }
 

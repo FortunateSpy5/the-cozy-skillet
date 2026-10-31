@@ -55,27 +55,31 @@ const { cuisineMeta, recipes } = Astro.props;
 
     <!-- Recipe Grid -->
     {recipes.length > 0 ? (
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-        {recipes.map((recipe) => (
-          <RecipeCard
-            slug={recipe.id.replace(/\.(md|mdx)$/, '')}
-            title={recipe.data.title}
-            description={recipe.data.description}
-            categories={recipe.data.categories}
-            cuisine={recipe.data.cuisine}
-            tags={recipe.data.tags}
-            dietary={recipe.data.dietary}
-            difficulty={recipe.data.difficulty}
-            prepTimeMinutes={recipe.data.prepTimeMinutes}
-            cookTimeMinutes={recipe.data.cookTimeMinutes}
-            proofTimeMinutes={recipe.data.proofTimeMinutes}
-            hydration={recipe.data.hydration}
-            servings={recipe.data.servings}
-            bakingType={recipe.data.bakingType}
-            image={recipe.data.image}
-            imageAlt={recipe.data.imageAlt}
-          />
-        ))}
+      <div>
+        <h2 class="sr-only">{cuisineMeta.name} Skillet Recipes</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {recipes.map((recipe, index) => (
+            <RecipeCard
+              slug={recipe.id.replace(/\.(md|mdx)$/, '')}
+              title={recipe.data.title}
+              description={recipe.data.description}
+              categories={recipe.data.categories}
+              cuisine={recipe.data.cuisine}
+              tags={recipe.data.tags}
+              dietary={recipe.data.dietary}
+              difficulty={recipe.data.difficulty}
+              prepTimeMinutes={recipe.data.prepTimeMinutes}
+              cookTimeMinutes={recipe.data.cookTimeMinutes}
+              proofTimeMinutes={recipe.data.proofTimeMinutes}
+              hydration={recipe.data.hydration}
+              servings={recipe.data.servings}
+              bakingType={recipe.data.bakingType}
+              image={recipe.data.image}
+              imageAlt={recipe.data.imageAlt}
+              priority={index < 3}
+            />
+          ))}
+        </div>
       </div>
     ) : (
       <div class="p-12 text-center bg-white border border-[#EBE5D9] rounded-3xl">

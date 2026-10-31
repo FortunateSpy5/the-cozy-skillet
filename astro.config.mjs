@@ -9,7 +9,7 @@ const siteUrl = process.env.SITE_URL || process.env.URL || 'https://thecozyskill
 
 export default defineConfig({
   site: siteUrl,
-  trailingSlash: 'ignore',
+  trailingSlash: 'always',
   prefetch: {
     prefetchAll: true,
     defaultStrategy: 'hover'

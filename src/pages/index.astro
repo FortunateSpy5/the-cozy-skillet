@@ -139,10 +139,12 @@ const recipeSearchData = sortedRecipes.map((r) => ({
       </div>
 
       <!-- Status Count -->
-      <div class="text-xs font-medium text-[#6B5B4F] pt-1" id="filter-status-count">
+      <div class="text-xs font-medium text-[#6B5B4F] pt-1" id="filter-status-count" aria-live="polite">
         Showing all {recipes.length} recipes
       </div>
     </div>
+
+    <h2 class="sr-only">Featured & Latest Recipes</h2>
 
     <!-- Recipe Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8" id="recipes-grid" data-index={JSON.stringify(recipeSearchData)}>
