@@ -75,13 +75,18 @@
   color: #7A3617;
 }
 
-/* Ensure Netlify Drawer and external feedback badges never block Cook Mode */
+/* Suppress Netlify Drawer, feedback pills, and preview badges across mobile docks and Cook Mode */
+#netlify-drawer,
+[id*="netlify-drawer"],
+iframe[src*="netlify"],
+[data-netlify-drawer],
+div[class*="netlify-drawer"],
 body:has(#cook-mode-modal.flex) [id*="netlify"],
-body:has(#cook-mode-modal.flex) iframe[src*="netlify"],
-body:has(#cook-mode-modal.flex) [data-netlify-drawer] {
+body:has(#cook-mode-modal.flex) iframe[src*="netlify"] {
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;
+  opacity: 0 !important;
 }
 
 /* Print styling for recipes - clean, ink-friendly, zero nav/footer */
