@@ -56,7 +56,7 @@ const calculatedFlourWeight = (() => {
     <!-- Controls Toolbar (Units & Servings Scaler) -->
     <div class="flex flex-wrap items-center justify-between gap-2.5 pt-1">
       <!-- Unit Preference Toggle (Dual | Grams | Cups | Baker's %) -->
-      <div class="flex items-center gap-1 bg-[#FAF3EE] p-1 rounded-2xl border border-[#EBE5D9]">
+      <div class="flex items-center gap-1 bg-[#FAF3EE] p-1 rounded-2xl border border-[#EBE5D9] max-w-full overflow-x-auto">
         <button 
           type="button" 
           class="unit-pref-btn text-xs font-bold py-1 px-2.5 sm:px-3 rounded-xl transition-all bg-[#9C4B25] text-white cursor-pointer" 
@@ -129,7 +129,7 @@ const calculatedFlourWeight = (() => {
         <span class="text-sm">🥣</span>
         <span>Mise-en-Place Prep Checklist</span>
       </span>
-      <span id="prep-progress-text" class="text-[#9C4B25] font-bold" aria-live="polite">0 of 0 prepped (0%)</span>
+      <span id="prep-progress-text" class="text-[#9C4B25] font-bold" role="status" aria-live="polite" aria-atomic="true">0 of 0 prepped (0%)</span>
     </div>
     <div class="w-full bg-[#FAF3EE] rounded-full h-1.5 overflow-hidden border border-[#EBE5D9]">
       <div id="prep-progress-bar" class="bg-[#4A7C59] h-full rounded-full transition-all duration-300 w-0"></div>

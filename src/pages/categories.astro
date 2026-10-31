@@ -41,7 +41,7 @@ const allDietary = Array.from(new Set(recipes.flatMap((r) => r.data.dietary)));
           ).length;
           return (
             <a 
-              href={cat.slug === 'baking' ? '/baking' : `/category/${cat.slug}`}
+              href={cat.slug === 'baking' ? '/baking/' : `/category/${cat.slug}/`}
               class="bg-white border border-[#EBE5D9] p-4 rounded-2xl shadow-2xs hover:border-[#9C4B25] hover:shadow-sm transition-all group flex flex-col justify-between"
             >
               <div>
@@ -70,7 +70,7 @@ const allDietary = Array.from(new Set(recipes.flatMap((r) => r.data.dietary)));
           <p class="text-xs sm:text-sm text-[#6B5B4F]">Precision metric baking with exact grams and oven/stovetop instructions.</p>
         </div>
         <a 
-          href="/baking" 
+          href="/baking/" 
           class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#9C4B25] text-white text-xs font-bold rounded-xl shadow-xs hover:bg-[#7A3617] transition-colors w-fit"
         >
           <span>Visit Baking Hub</span>
@@ -82,7 +82,7 @@ const allDietary = Array.from(new Set(recipes.flatMap((r) => r.data.dietary)));
         {bakingBuckets.map((bucket) => {
           const count = recipes.filter((r) => r.data.bakingType === bucket).length;
           return (
-            <a href="/baking" class="bg-white border border-[#EBE5D9] p-4 rounded-2xl hover:border-[#9C4B25] transition-colors group">
+            <a href="/baking/" class="bg-white border border-[#EBE5D9] p-4 rounded-2xl hover:border-[#9C4B25] transition-colors group">
               <span class="block text-sm font-bold text-[#4A3F35] group-hover:text-[#9C4B25] transition-colors">{bucket}</span>
               <span class="block text-xs text-[#6B5B4F] mt-1 font-medium">{count} {count === 1 ? 'recipe' : 'recipes'}</span>
             </a>
@@ -106,7 +106,7 @@ const allDietary = Array.from(new Set(recipes.flatMap((r) => r.data.dietary)));
             ).length;
             return (
               <a 
-                href={`/cuisine/${c.slug}`}
+                href={`/cuisine/${c.slug}/`}
                 class="bg-white border border-[#EBE5D9] p-3 rounded-xl flex items-center justify-between gap-2 hover:border-[#9C4B25] transition-all group shadow-2xs"
               >
                 <div class="flex items-center gap-2">
@@ -166,7 +166,7 @@ const allDietary = Array.from(new Set(recipes.flatMap((r) => r.data.dietary)));
         All Tested Recipes ({recipes.length})
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {recipes.map((recipe) => (
+        {recipes.map((recipe, index) => (
           <RecipeCard
             slug={recipe.id.replace(/\.(md|mdx)$/, '')}
             title={recipe.data.title}
@@ -184,6 +184,7 @@ const allDietary = Array.from(new Set(recipes.flatMap((r) => r.data.dietary)));
             bakingType={recipe.data.bakingType}
             image={recipe.data.image}
             imageAlt={recipe.data.imageAlt}
+            priority={index < 3}
           />
         ))}
       </div>

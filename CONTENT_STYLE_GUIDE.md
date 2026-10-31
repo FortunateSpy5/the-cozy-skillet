@@ -29,7 +29,7 @@ description: "Crispy skin-on chicken thighs seared in a cast iron skillet and ba
 pubDate: 2026-10-31
 image: "/images/recipes/garlic-butter-skillet-chicken.jpg"
 imageAlt: "Golden crispy skillet chicken thighs nestled in garlic butter herb sauce"
-categories: ["Skillet Mains & Curries"] # Breakfast, Rice & Noodles, Pasta, Snacks & Street Bites, Skillet Mains & Curries, Baking
+categories: ["Skillet Mains & Curries"] # Breakfast, Rice & Noodles, Pasta, Snacks & Street Bites, Skillet Mains & Curries, Baking, Drinks & Beverages
 bakingType: null # (Only when categorized as Baking): Breads & Flatbreads, Cakes & Tea Loaves, Cookies, Brownies & Bars
 cuisine: ["Mediterranean", "Continental"] # Indian, Chinese, Continental, Mexican, Mediterranean, Fusion
 tags: ["One-Pan", "Quick (< 30 Mins)"] # Quick (< 30 Mins), One-Pan, One-Pot, Tawa Special, High-Protein

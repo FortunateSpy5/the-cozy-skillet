@@ -12,7 +12,7 @@ This document is the single-source engineering and technical reference for **The
 | **Recipe Creation Guardrail** | **Never create unprompted** | NEVER create, generate, or add new recipes unless the user explicitly requests them. |
 | **Git Push / Deployment** | **NEVER push automatically** | Only execute `git push` or Netlify deploys when explicitly commanded by the user with words like "push", "deploy", or "upload". |
 | **Build & Type Verification** | **Zero errors required** | Always execute `npm run check` and `npm run build` locally and verify 0 errors and 0 warnings before concluding any task. |
-| **Trailing Slashes** | **Internal trailing slashes** | Every internal URL, canonical tag, and navigation link must end with a slash (e.g., `/baking/`, `/category/pasta/`, `/about/`). `astro.config.mjs` uses `trailingSlash: 'ignore'` with `build: { format: 'directory' }`. |
+| **Trailing Slashes** | **Internal trailing slashes** | Every internal URL, canonical tag, and navigation link must end with a slash (e.g., `/baking/`, `/category/pasta/`, `/about/`). `astro.config.mjs` uses `trailingSlash: 'always'` with `build: { format: 'directory' }`. |
 
 ---
 
@@ -76,6 +76,8 @@ The Cozy Skillet strictly uses the warm, tactile, editorial palette shared with 
    * Rich snippet fields: `recipeYield`, `recipeIngredient`, `recipeInstructions` (`HowToStep`), `nutrition` (`NutritionInformation`), and `author`.
 2. **Performance & Core Web Vitals (100/100):**
    * Zero heavy client-side JavaScript libraries. Pure vanilla TS for the scaler, timers, and search.
+   * **Zero-Flicker SPA Transitions (`<ClientRouter />`):** Full client-side routing in `Layout.astro` preventing traditional MPA page reloads. All client scripts hook to `astro:page-load` and clean up on `astro:before-swap`.
+   * **Responsive WebP Image Pipeline (`src/utils/images.ts`):** Edge-transformed WebP delivery via Netlify Image CDN (`/.netlify/images`). Recipe cards use responsive `srcset` (`400w`, `640w`, reducing card payloads by 96.4%), and search thumbnails render at 160×160 (~4.7 KB vs 1 MB raw).
    * Static Site Generation (SSG) with pre-rendered HTML routes.
    * Asset caching configured in `netlify.toml` with immutable 1-year caches for `/_astro/*` bundles.
 

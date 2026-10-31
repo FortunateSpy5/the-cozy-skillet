@@ -1,4 +1,6 @@
 ---
+import { getOptimizedImageUrl, getResponsiveImageSrcSet } from '../utils/images';
+
 export interface Props {
   slug: string;
   title: string;
@@ -53,6 +55,10 @@ const sanitizedTags = tags.filter((t) => {
 // Curate display badges to prevent visual clutter (max 3-4 key badges)
 const displayTag = sanitizedTags[0];
 const displayDietary = dietary.slice(0, 2);
+
+// Responsive optimized image URLs (WebP via Netlify Image CDN in production)
+const optimizedCardImage = getOptimizedImageUrl(image, { width: 640, quality: 75, format: 'webp' });
+const cardSrcSet = getResponsiveImageSrcSet(image, [400, 640], { quality: 75, format: 'webp' });
 ---
 
 <a 
@@ -68,7 +74,9 @@ const displayDietary = dietary.slice(0, 2);
   {image && (
     <div class="relative w-full aspect-[16/10] overflow-hidden bg-[#FAF3EE] border-b border-[#EBE5D9]/60">
       <img 
-        src={image} 
+        src={optimizedCardImage} 
+        srcset={cardSrcSet}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
         alt={imageAlt || title} 
         loading={priority ? "eager" : "lazy"} 
         fetchpriority={priority ? "high" : "auto"}

@@ -29,6 +29,8 @@ Traditional online recipe blogs are plagued by 2,000-word autobiographical stori
    - **Cook Mode (Hands-Free):** Distraction-free, large-text step-by-step cooking interface utilizing the browser's `Screen Wake Lock API` to prevent the phone/tablet screen from dimming while cooking.
    - **Integrated Timers:** Built-in step timers (e.g. "Simmer for 15 minutes [Start Timer]") with acoustic chime alerts.
    - **Instant Ingredient Search:** Client-side search engine allowing you to search by ingredients currently in your fridge.
+   - **Instant Subdirectory Transitions (<ClientRouter />):** Full client-side SPA routing powered by Astro View Transitions with zero document reloads, persistent styles, and smooth state transitions.
+   - **Responsive Edge Image CDN Pipeline:** Production image delivery optimized via Netlify Image CDN (`src/utils/images.ts`), transforming heavy raw JPEGs into responsive WebP images (34 KB cards vs 1 MB raw, 4.7 KB search thumbnails).
    - **Printer-Friendly View:** One-click clean, ink-saving print layout without headers, footers, or navigation.
 
 ---
@@ -67,7 +69,7 @@ description: "Crispy skin-on chicken thighs seared in a cast iron skillet and ba
 pubDate: 2026-10-31
 image: "/images/recipes/garlic-butter-skillet-chicken.jpg"
 imageAlt: "Golden crispy skillet chicken thighs nestled in garlic butter herb sauce"
-categories: ["Skillet Mains & Curries"] # Breakfast, Rice & Noodles, Pasta, Snacks & Street Bites, Skillet Mains & Curries, Baking
+categories: ["Skillet Mains & Curries"] # Breakfast, Rice & Noodles, Pasta, Snacks & Street Bites, Skillet Mains & Curries, Baking, Drinks & Beverages
 bakingType: null # Optional (when categorized as Baking): Breads & Flatbreads, Cakes & Tea Loaves, Cookies, Brownies & Bars
 cuisine: ["Mediterranean", "Continental"] # Indian, Chinese, Continental, Mexican, Mediterranean, Fusion
 tags: ["One-Pan", "Quick (< 30 Mins)"] # Quick (< 30 Mins), One-Pan, One-Pot, Tawa Special, High-Protein
@@ -232,6 +234,8 @@ For deeper architectural context, technical standards, and writing guidelines, c
 - Provide temperatures in Celsius (°C).
 - Mention Indian kitchen availability notes / substitutes where appropriate.
 - Test interactive features (scaler, checkboxes, timers, cook mode) across mobile viewports.
+- Use `src/utils/images.ts` for all recipe cards and thumbnails to serve responsive WebP via Netlify Image CDN. Never serve raw 1MB JPEGs directly in cards.
+- Wire all interactive client scripts to `astro:page-load` (with interval/event teardown on `astro:before-swap`) to preserve Astro `<ClientRouter />` transitions.
 
 ### ASK FIRST:
 - Always propose and confirm architectural changes, new recipe categories, or content plans before implementation.

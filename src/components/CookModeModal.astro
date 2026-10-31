@@ -330,11 +330,12 @@ const { title, instructions } = Astro.props;
       }
     }
 
-    document.addEventListener('visibilitychange', async () => {
+    const onVisibility = async () => {
       if (document.visibilityState === 'visible' && modal.classList.contains('flex')) {
         await requestWakeLock();
       }
-    });
+    };
+    document.addEventListener('visibilitychange', onVisibility);
 
     function formatTime(totalSeconds: number): string {
       const m = Math.floor(totalSeconds / 60);
@@ -566,7 +567,7 @@ const { title, instructions } = Astro.props;
       }
     });
 
-    window.addEventListener('keydown', (e) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (!modal.classList.contains('flex')) return;
 
       if (e.key === 'Tab') {
@@ -608,7 +609,22 @@ const { title, instructions } = Astro.props;
         e.preventDefault();
         closeModal();
       }
-    });
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+
+    // Self-cleaning teardown on ClientRouter page transitions
+    const cleanupModal = () => {
+      window.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('visibilitychange', onVisibility);
+      releaseWakeLock();
+      if (timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      document.removeEventListener('astro:before-swap', cleanupModal);
+    };
+    document.addEventListener('astro:before-swap', cleanupModal);
   }
 
   document.addEventListener('astro:page-load', initCookMode);

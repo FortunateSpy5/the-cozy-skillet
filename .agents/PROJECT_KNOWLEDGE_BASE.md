@@ -81,6 +81,9 @@ the-cozy-skillet/
 │   ├── styles/
 │   │   └── global.css              # Tailwind v4 import & .prose typography isolation
 │   │
+│   ├── utils/                      # Optimization & Helper Utilities
+│   │   └── images.ts               # Netlify Edge Image CDN responsive WebP helper
+│   │
 │   └── content.config.ts           # Astro content collection schema with Zod
 │
 ├── docs/                           # Human-readable architectural documentation
@@ -150,6 +153,16 @@ The Cozy Skillet adopts a **Zero-JS by Default** philosophy. JavaScript is never
 * **State Engine:** Updates `#prep-progress-text` and `#prep-progress-bar` dynamically as checkboxes are toggled:
   $$\text{Progress} = \frac{\text{Checked Items}}{\text{Total Items}} \times 100\%$$
 * Completed ingredients render with strikethrough text and `Fresh Sage (#4A7C59)` accent highlights.
+
+### K. Client-Side Subdirectory Routing (`<ClientRouter />`)
+* **Mechanism:** Integrated Astro 5 View Transitions via `<ClientRouter />` in `src/layouts/Layout.astro`.
+* **Zero-Flicker Architecture:** Eliminates traditional MPA page unloads. Clicks to subdirectories (`/baking/`, `/categories/`, `/recipes/[slug]/`) swap document bodies via client-side fetch, preserving styles and memory cache.
+* **Lifecycle Hooks:** All interactive kitchen components attach listeners to `astro:page-load` and clean up intervals on `astro:before-swap`.
+
+### L. Edge Image CDN Pipeline (`src/utils/images.ts`)
+* **Mechanism:** Transforms uncompressed full-resolution assets on Netlify Edge via `/.netlify/images`.
+* **Responsive Delivery:** Recipe cards serve responsive WebP with `srcset` (`400w`, `640w`), reducing initial payload from 13.7 MB to ~750 KB. Search thumbnails render at 160×160 (~4.7 KB vs 1 MB raw).
+* **Development Fallback:** Gracefully falls back to direct local files (`/images/recipes/...`) when `!import.meta.env.PROD` for offline DX.
 
 ---
 

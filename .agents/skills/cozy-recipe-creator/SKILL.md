@@ -29,7 +29,7 @@ Ensure all required fields are present:
 * `title`: Concise, evocative recipe name.
 * `description`: 1–2 crisp sentences highlighting flavor, texture, and pan technique.
 * `pubDate`: Current date (`YYYY-MM-DD`).
-* `categories`: Array of matching categories (`Skillet Mains & Curries`, `Pasta`, `Rice & Noodles`, `Snacks & Street Bites`, `Breakfast`, `Baking`).
+* `categories`: Array of matching categories (`Skillet Mains & Curries`, `Pasta`, `Rice & Noodles`, `Snacks & Street Bites`, `Breakfast`, `Baking`, `Drinks & Beverages`).
 * `bakingType`: If categorized as Baking, define one of: `Breads & Flatbreads`, `Cakes & Tea Loaves`, `Cookies, Brownies & Bars`.
 * `cuisine`: Array of cuisines (`Indian`, `Chinese`, `Continental`, `Mediterranean`, `Mexican`, `Fusion`).
 * `tags`: Array of practical tags (`One-Pan`, `Quick (< 30 Mins)`, `Tawa Special`, `One-Pot`, `High-Protein`).

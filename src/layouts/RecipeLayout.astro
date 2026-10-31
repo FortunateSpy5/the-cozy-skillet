@@ -5,6 +5,7 @@ import InstructionList from '../components/InstructionList.astro';
 import CookModeModal from '../components/CookModeModal.astro';
 import CooksNotes from '../components/CooksNotes.astro';
 import OTGBakeSettings from '../components/OTGBakeSettings.astro';
+import { getOptimizedImageUrl, getResponsiveImageSrcSet } from '../utils/images';
 import { SITE_CONFIG } from '../data/siteConfig';
 import { CATEGORIES } from '../data/categories';
 import type { CollectionEntry } from 'astro:content';
@@ -24,8 +25,8 @@ const primaryCatMeta = CATEGORIES.find(
   (c) => c.name.toLowerCase() === data.categories[0]?.toLowerCase()
 );
 const categoryHref = primaryCatMeta 
-  ? (primaryCatMeta.slug === 'baking' ? '/baking' : `/category/${primaryCatMeta.slug}`) 
-  : '/categories';
+  ? (primaryCatMeta.slug === 'baking' ? '/baking/' : `/category/${primaryCatMeta.slug}/`) 
+  : '/categories/';
 
 const recipeCanonicalUrl = new URL(`/recipes/${slug}/`, SITE_CONFIG.siteUrl).toString();
 const categoryCanonicalUrl = new URL(categoryHref, SITE_CONFIG.siteUrl).toString();
@@ -105,13 +106,30 @@ const breadcrumbSchema = {
     }
   ]
 };
+
+// Responsive optimized hero image URLs (WebP via Netlify Image CDN in production)
+const heroImageUrl = getOptimizedImageUrl(data.image, { width: 1200, quality: 85, format: 'webp' });
+const heroSrcSet = getResponsiveImageSrcSet(data.image, [640, 960, 1200], { quality: 85, format: 'webp' });
 ---
 
 <Layout title={data.title} description={data.description} image={data.image} schema={[recipeSchema, breadcrumbSchema]}>
+  <Fragment slot="head">
+    {data.image && (
+      <link 
+        rel="preload" 
+        as="image" 
+        href={heroImageUrl} 
+        imagesrcset={heroSrcSet}
+        imagesizes="(max-width: 768px) 100vw, 1200px"
+        type="image/webp" 
+        fetchpriority="high" 
+      />
+    )}
+  </Fragment>
   <article class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-12 recipe-container pb-24 lg:pb-12">
     
     <!-- Breadcrumbs -->
-    <nav class="flex items-center gap-2 text-xs text-[#6B5B4F] mb-6 no-print">
+    <nav class="flex items-center gap-2 text-xs text-[#6B5B4F] mb-6 no-print" aria-label="Breadcrumb">
       <a href="/" class="hover:text-[#9C4B25] transition-colors">Recipes</a>
       <span>/</span>
       <a href={categoryHref} class="hover:text-[#9C4B25] transition-colors">
@@ -238,7 +256,9 @@ const breadcrumbSchema = {
     {data.image && (
       <div class="mb-10 rounded-3xl overflow-hidden border border-[#EBE5D9] bg-[#FAF3EE] shadow-sm">
         <img 
-          src={data.image} 
+          src={heroImageUrl} 
+          srcset={heroSrcSet}
+          sizes="(max-width: 768px) 100vw, 1200px"
           alt={data.imageAlt || data.title} 
           width="1200"
           height="675"
@@ -510,7 +530,10 @@ const breadcrumbSchema = {
     });
   }
 
-  // Kitchen Screen Wake Lock Toggle with visibilitychange auto-reacquisition
+  // Kitchen Screen Wake Lock State & Toggle
+  let activeRecipeWakeLock: any = null;
+  let userWantsRecipeWakeLock = false;
+
   function setupWakeLock() {
     const btn = document.getElementById('wake-lock-toggle-btn');
     if (!btn || btn.dataset.initialized === 'true') return;
@@ -518,8 +541,6 @@ const breadcrumbSchema = {
 
     const icon = document.getElementById('wake-lock-icon');
     const text = document.getElementById('wake-lock-text');
-    let wakeLock: any = null;
-    let userRequestedWakeLock = false;
 
     if (!('wakeLock' in navigator)) {
       btn.style.display = 'none';
@@ -528,17 +549,17 @@ const breadcrumbSchema = {
 
     async function acquireLock() {
       try {
-        wakeLock = await (navigator as any).wakeLock.request('screen');
+        activeRecipeWakeLock = await (navigator as any).wakeLock.request('screen');
         btn?.setAttribute('aria-pressed', 'true');
         btn?.classList.add('bg-amber-100', 'text-amber-900', 'border-amber-300');
         btn?.classList.remove('bg-white', 'text-[#4A3F35]');
         if (text) text.textContent = 'Screen Stays Awake';
         if (icon) icon.textContent = '☀️';
 
-        wakeLock.addEventListener('release', () => {
-          wakeLock = null;
+        activeRecipeWakeLock.addEventListener('release', () => {
+          activeRecipeWakeLock = null;
           // Only reset UI if user explicitly turned it off
-          if (!userRequestedWakeLock) {
+          if (!userWantsRecipeWakeLock) {
             btn?.setAttribute('aria-pressed', 'false');
             btn?.classList.remove('bg-amber-100', 'text-amber-900', 'border-amber-300');
             btn?.classList.add('bg-white', 'text-[#4A3F35]');
@@ -548,7 +569,7 @@ const breadcrumbSchema = {
         });
       } catch (err) {
         console.warn('Wake lock request failed:', err);
-        userRequestedWakeLock = false;
+        userWantsRecipeWakeLock = false;
         btn?.setAttribute('aria-pressed', 'false');
         btn?.classList.remove('bg-amber-100', 'text-amber-900', 'border-amber-300');
         btn?.classList.add('bg-white', 'text-[#4A3F35]');
@@ -558,14 +579,14 @@ const breadcrumbSchema = {
     }
 
     async function releaseLock() {
-      userRequestedWakeLock = false;
-      if (wakeLock !== null) {
+      userWantsRecipeWakeLock = false;
+      if (activeRecipeWakeLock !== null) {
         try {
-          await wakeLock.release();
+          await activeRecipeWakeLock.release();
         } catch {
           // Ignore release errors
         }
-        wakeLock = null;
+        activeRecipeWakeLock = null;
       }
       btn?.setAttribute('aria-pressed', 'false');
       btn?.classList.remove('bg-amber-100', 'text-amber-900', 'border-amber-300');
@@ -575,23 +596,39 @@ const breadcrumbSchema = {
     }
 
     async function toggleWakeLock() {
-      if (userRequestedWakeLock) {
+      if (userWantsRecipeWakeLock) {
         await releaseLock();
       } else {
-        userRequestedWakeLock = true;
+        userWantsRecipeWakeLock = true;
         await acquireLock();
       }
     }
 
     btn.addEventListener('click', toggleWakeLock);
 
-    // Re-acquire lock when user returns to tab after switching apps/calls
-    document.addEventListener('visibilitychange', async () => {
-      if (document.visibilityState === 'visible' && userRequestedWakeLock && wakeLock === null) {
-        await acquireLock();
-      }
-    });
+    // Re-acquire lock when user returns to tab after switching apps/calls (attached only once)
+    if (!(window as any).__recipeWakeLockVisibilityAttached) {
+      (window as any).__recipeWakeLockVisibilityAttached = true;
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible' && userWantsRecipeWakeLock && activeRecipeWakeLock === null) {
+          await acquireLock();
+        }
+      });
+    }
   }
+
+  // Release screen wake lock when navigating away via ClientRouter
+  document.addEventListener('astro:before-swap', async () => {
+    if (activeRecipeWakeLock !== null) {
+      try {
+        await activeRecipeWakeLock.release();
+      } catch {
+        // Ignore
+      }
+      activeRecipeWakeLock = null;
+    }
+    userWantsRecipeWakeLock = false;
+  });
 
   function initPage() {
     setupMobileDrawer();
