@@ -8,14 +8,17 @@ The Cozy Skillet is the sister culinary project to [The Cozy Cart](https://theco
 
 ## ✨ Features
 
-- **No-Fluff Layout:** Ingredients, timings, measurements, and step-by-step instructions immediately accessible.
-- **Interactive Ingredient Checklists:** Check off ingredients as you prep at your cutting board.
-- **Dynamic Serving Scaler:** Real-time calculation for `0.5x`, `1x`, `2x`, and `3x` serving portions without page reloads.
-- **Cook Mode (Kitchen Mode):** Fullscreen, high-contrast, distraction-free cooking view with keyboard navigation and the `Screen Wake Lock API` to prevent your phone/tablet display from sleeping while cooking.
-- **Integrated Step Timers:** In-browser countdown timers with acoustic chimes for simmering, resting, and searing.
+- **No-Fluff Layout:** Ingredients, timings, measurements, and step-by-step instructions immediately accessible without 2,000-word autobiographical essays.
+- **Pure OTG Baking Hub:** Bread & baking recipes calibrated strictly for tabletop Oven Toaster Grillers (25L–60L) with explicit heating rod modes, rack positions, 15-minute preheat, and top-rod foil shield cues.
+- **Dynamic Baker's Percentage Engine:** Dynamic 4th unit toggle (`Dual | Grams | Cups | Baker's %`) displaying ingredient weights relative to base flour weight ($100\%$).
+- **Whole-Batch Scaling & Vessel Protection:** Scalable serving multiplier (`0.5x`, `1x`, `2x`) with automatic pan-crowding warnings when doubling baking doughs.
+- **Climate-Aware Proofing Timers:** Seasonal fermentation toggles (`[☀️ Warm Kitchen (>28°C)]` vs `[❄️ Cool/AC Kitchen (<24°C)]`) dynamically updating step timer durations with acoustic Web Audio API chimes.
+- **Mobile Quick-Peek Drawer:** Slide-up ingredients sheet accessible from the mobile floating dock, allowing cooks on step 4 or 5 to check amounts without losing their place in the instructions.
+- **Interactive Ingredients & Mise-en-Place Tracker:** Check off ingredients with a real-time Mise-en-Place progress counter and animated visual completion bar.
+- **Cook Mode (Hands-Free):** Fullscreen, high-contrast cooking view with keyboard navigation and the `Screen Wake Lock API` (with automatic re-acquisition on visibility change) to prevent screens from dimming.
 - **Instant Ingredient Search:** Client-side search engine allowing you to search by ingredients currently in your fridge.
 - **Recipe Schema.org JSON-LD:** Structured data formatted to Google Recipe Rich Snippet standards.
-- **Print Friendly:** Dedicated print stylesheet for ink-saving, ad-free paper recipe cards.
+- **Print Friendly:** Dedicated ink-saving print stylesheet without headers, footers, or navigation.
 
 ---
 
