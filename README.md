@@ -10,6 +10,8 @@ The Cozy Skillet is the sister culinary project to [The Cozy Cart](https://theco
 
 - **No-Fluff Layout:** Ingredients, timings, measurements, and step-by-step instructions immediately accessible without 2,000-word autobiographical essays.
 - **Pure OTG Baking Hub:** Bread & baking recipes calibrated strictly for tabletop Oven Toaster Grillers (25L–60L) with explicit heating rod modes, rack positions, 15-minute preheat, and top-rod foil shield cues.
+- **Air Fryer Baking & Bain-Marie Protocols:** Small-batch baking calibrated for 3.5L–5.5L air fryers (160°C / 4-mould spacing rule) plus OTG water bath specs for silky steamed puddings.
+- **Artisanal Sips & Refreshments:** Stovetop European-style thick hot chocolate and cafe/street sodas with exact metric/volume dual measurements, flame cues, and Indian street variations.
 - **Dynamic Baker's Percentage Engine:** Dynamic 4th unit toggle (`Dual | Grams | Cups | Baker's %`) displaying ingredient weights relative to base flour weight ($100\%$).
 - **Whole-Batch Scaling & Vessel Protection:** Scalable serving multiplier (`0.5x`, `1x`, `2x`) with automatic pan-crowding warnings when doubling baking doughs.
 - **Climate-Aware Proofing Timers:** Seasonal fermentation toggles (`[☀️ Warm Kitchen (>28°C)]` vs `[❄️ Cool/AC Kitchen (<24°C)]`) dynamically updating step timer durations with acoustic Web Audio API chimes.

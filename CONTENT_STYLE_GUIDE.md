@@ -171,3 +171,36 @@ All recipes in the `Baking` category are calibrated strictly for **100% Oven Toa
 * **Browned Amul Butter:** Simmer Amul butter 3–4 minutes until nutty hazelnut milk solids form; injects deep butterscotch caramel aromatics into brioche and sandwich loaves.
 * **The 1 Tbsp Dahi Shortcut:** 15g room-temperature curd introduces natural lactic acid, replicating overnight sourdough depth in a 2-hour bake.
 
+### 5. OTG Bain-Marie (Water Bath) Standards:
+For delicate custards, crème caramels, and steamed bread puddings baked in an OTG:
+* **Preheat & Rod Mode:** 170°C (338°F) for 15 minutes with Both Rods On • Fan Off.
+* **Vessel Prep:** Place the baking tin inside a deeper roasting tray or cake tin. Pour boiling water into the outer tray until it reaches halfway up the walls of the inner tin.
+* **Foil Seal Mandate:** Crimp aluminium foil tightly around the inner tin's rim to prevent dry skin formation and keep internal steam locked inside.
+
+### 6. Air Fryer Baking Protocol (The 160°C / 4-Mould Rule):
+For small-batch cupcakes, muffins, and quick-bake treats in countertop air fryers (Philips, Instant Pot, Agaro, Wonderchef 3.5L–5.5L):
+1. **The 160°C (320°F) Temperature Ceiling:** High-velocity convection fans circulate intense dry heat that scorches muffin peaks before centers cook. Always drop bake temperature by 15°C–20°C compared to static OTG baking (bake at strictly 160°C / 320°F).
+2. **The 4-Mould Spacing Limit:** Never overcrowd the basket. Place a maximum of 4 silicone or rigid paper moulds per batch with at least 1-inch radial clearance so circulating air wraps evenly around each mould.
+3. **Rapid 3-Minute Preheat:** Compact 4L air fryer chambers stabilize in just 3 minutes at 160°C.
+4. **Dual OTG Profile Requirement:** Always pair air fryer instructions with a full 12-cup OTG bake profile (175°C–180°C for 18–20 minutes) so cooks with tabletop ovens can bake the entire batch at once.
+
+---
+
+## 7. Artisanal Beverages, Refreshments & Stovetop Drinks
+
+The Cozy Skillet embraces European-style stovetop thick hot chocolates, Indian cafe mocktails, and street-style sodas:
+
+1. **Category Mapping:** Drinks are categorized under `Breakfast` or `Snacks & Street Bites` (with tags like `Quick (< 30 Mins)`, `Comfort`).
+2. **Dual-Unit Metric & Liquid Precision:**
+   * Liquids must provide both metric volume (`ml`) and kitchen volume (`cups`, `tbsp`).
+   * Dry aromatics, salts, and sugars must define grams (`g`) and standard spoons (`tsp`, `tbsp`).
+3. **Stovetop Heat & Slurry Gelatinization:**
+   * Explicit temperatures in Celsius with Fahrenheit in parentheses (e.g. `75°C (167°F)`).
+   * For starch-thickened drinks (cornstarch slurry), instruct gentle simmering on low flame with continuous whisking to activate starch gelatinization without scorching.
+4. **The Gentle Muddle Protocol (Nimbu Soda & Mojitos):**
+   * Specify pressing fresh mint 4 to 5 times against sugar crystals using a wooden spoon or muddler to release volatile menthol oils into citrus juice.
+   * Explicitly warn against shredding or pounding mint leaves to prevent releasing bitter chlorophyll veins.
+5. **Indian Kitchen Street & Pantry Notes:**
+   * Every beverage must document regional pantry options under `notes:` (e.g. Shahi Masala Soda twist with *kala namak* and *bhuna jeera*, Amul Gold 6% milk fat calibration vs. toned milk with fresh malai).
+
+

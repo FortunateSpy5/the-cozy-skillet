@@ -5,6 +5,9 @@ export interface InstructionStep {
   step: number;
   title?: string;
   text: string;
+  durationMinutes?: number;
+  summerDurationMinutes?: number;
+  winterDurationMinutes?: number;
 }
 
 export interface Props {
@@ -19,7 +22,7 @@ const { title, instructions } = Astro.props;
 <button 
   type="button" 
   id="open-cook-mode" 
-  class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#9C4B25] hover:bg-[#7A3617] text-white text-sm font-bold rounded-2xl shadow-sm transition-all transform hover:-translate-y-0.5 cursor-pointer"
+  class="inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-[#9C4B25] hover:bg-[#7A3617] text-white text-sm font-bold rounded-2xl shadow-sm transition-all transform hover:-translate-y-0.5 cursor-pointer"
 >
   <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
     <polygon points="5 3 19 12 5 21 5 3"/>
@@ -28,84 +31,237 @@ const { title, instructions } = Astro.props;
   <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Screen Stays On</span>
 </button>
 
-<!-- Fullscreen Cook Mode Modal -->
+<!-- Fullscreen Cook Mode Modal (Engineered strictly to fit mobile 100dvh without scrolling for Next/Prev) -->
 <div 
   id="cook-mode-modal" 
   role="dialog"
   aria-modal="true"
   aria-labelledby="modal-step-title"
-  class="fixed inset-0 z-50 bg-[#FDFBF7] text-[#4A3F35] hidden flex-col justify-between p-4 sm:p-8 md:p-12 overflow-y-auto select-none"
+  class="fixed inset-0 z-50 bg-[#FDFBF7] text-[#4A3F35] hidden flex-col h-[100dvh] max-h-[100dvh] overflow-hidden select-none"
   data-steps={JSON.stringify(instructions)}
 >
-  <!-- Top Bar -->
-  <div class="flex flex-wrap sm:flex-nowrap items-center justify-between border-b border-[#EBE5D9] pb-4 gap-3">
-    <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+  <!-- 1. Top Bar (Always Pinned, Never Scrolls) -->
+  <header class="shrink-0 w-full px-4 sm:px-6 py-2.5 sm:py-3 border-b border-[#EBE5D9] bg-[#FDFBF7] flex items-center justify-between gap-2 sm:gap-3 z-20">
+    <div class="flex items-center gap-2 sm:gap-2.5 min-w-0">
       <Logo size="sm" showWordmark={false} />
-      <span class="px-2.5 py-1 bg-[#FAF3EE] border border-[#EBE5D9] text-[#9C4B25] rounded-xl text-xs font-bold uppercase tracking-wider shrink-0">
+      <span class="px-2 py-0.5 bg-[#FAF3EE] border border-[#EBE5D9] text-[#9C4B25] rounded-xl text-[11px] sm:text-xs font-bold uppercase tracking-wider shrink-0">
         Cook Mode
       </span>
-      <h2 class="text-sm sm:text-base md:text-lg font-serif font-bold text-[#4A3F35] truncate max-w-xs sm:max-w-md">
+      <h2 class="text-xs sm:text-sm font-serif font-bold text-[#4A3F35] truncate max-w-[120px] sm:max-w-xs md:max-w-md">
         {title}
       </h2>
     </div>
 
+    <!-- Active Read-Ahead Timer Pill (Pinned in header when cook navigates ahead) -->
+    <div id="modal-pinned-timer" class="hidden items-center gap-1.5 sm:gap-2 px-2.5 py-1 bg-[#FAF3EE] border border-[#9C4B25]/40 rounded-xl text-xs font-bold text-[#9C4B25] shadow-2xs">
+      <span class="animate-pulse">⏱️</span>
+      <span id="pinned-timer-display" class="font-mono cursor-pointer hover:underline py-1">00:00</span>
+      <span id="pinned-timer-step" class="text-[10px] text-[#6B5B4F] hidden md:inline"></span>
+      <button type="button" id="pinned-timer-toggle-btn" class="p-1.5 hover:text-[#7A3617] cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-black/5" aria-label="Pause or Resume Timer">
+        <svg id="pinned-pause-icon" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        <svg id="pinned-play-icon" class="w-3.5 h-3.5 hidden" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </button>
+      <button type="button" id="pinned-timer-cancel-btn" class="text-xs font-bold text-[#6B5B4F] hover:text-[#9C4B25] p-1.5 cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-black/5" aria-label="Cancel Timer">✕</button>
+    </div>
+
+    <!-- Exit Button -->
     <button 
       type="button" 
       id="close-cook-mode" 
-      class="px-4 py-2.5 bg-white border border-[#EBE5D9] text-[#4A3F35] hover:bg-[#FAF3EE] rounded-xl text-xs sm:text-sm font-bold transition-all shadow-2xs min-h-[44px] cursor-pointer"
+      class="inline-flex items-center justify-center px-3.5 py-2 bg-white border border-[#EBE5D9] text-[#4A3F35] hover:bg-[#FAF3EE] rounded-xl text-xs sm:text-sm font-bold transition-all shadow-2xs min-h-[44px] cursor-pointer shrink-0"
       aria-label="Exit Cook Mode"
     >
       ✕ Exit
     </button>
-  </div>
+  </header>
 
-  <!-- Giant Step Content -->
-  <div class="my-auto max-w-4xl mx-auto py-10 text-center space-y-6">
-    <div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-[#9C4B25] text-white font-serif font-bold text-2xl sm:text-3xl shadow-md" id="modal-step-number">
-      1
+  <!-- 2. Middle Content Area (Flex-1, Scrollable ONLY if step text exceeds screen, Centered) -->
+  <main class="flex-1 overflow-y-auto px-4 sm:px-6 py-3 sm:py-6 flex flex-col items-center justify-center text-center max-w-2xl mx-auto w-full min-h-0">
+    <div class="my-auto w-full space-y-2.5 sm:space-y-4">
+      <!-- Step Badge -->
+      <div class="inline-flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 rounded-2xl bg-[#9C4B25] text-white font-serif font-bold text-lg sm:text-2xl shadow-md" id="modal-step-number">
+        1
+      </div>
+
+      <!-- Step Title -->
+      <h3 class="text-base sm:text-2xl font-serif font-bold text-[#4A3F35] leading-snug px-2" id="modal-step-title">
+        Step Title
+      </h3>
+
+      <!-- Step Instruction Text -->
+      <p class="text-sm sm:text-lg text-[#5F5045] leading-relaxed font-sans font-medium max-w-xl mx-auto px-2" id="modal-step-text">
+        Step instruction text goes here.
+      </p>
+
+      <!-- Step Timer Section -->
+      <div id="modal-timer-section" class="pt-1.5 sm:pt-2 max-w-xs sm:max-w-sm mx-auto w-full">
+        <!-- Idle State: Start Timer Button + Quick Adjustments -->
+        <div id="timer-idle-box" class="flex items-center justify-center gap-1.5 sm:gap-2">
+          <button 
+            type="button" 
+            id="timer-start-btn" 
+            class="inline-flex items-center gap-1.5 sm:gap-2 px-4 py-2 bg-[#FAF3EE] hover:bg-[#9C4B25] hover:text-white text-[#9C4B25] border border-[#EBE5D9] rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-2xs cursor-pointer min-h-[44px]"
+          >
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span id="timer-idle-label">Start Timer</span>
+          </button>
+          
+          <button 
+            type="button" 
+            id="timer-minus-1" 
+            class="inline-flex items-center justify-center px-3 py-2 bg-white hover:bg-[#FAF3EE] border border-[#EBE5D9] text-xs font-bold text-[#6B5B4F] rounded-xl min-h-[44px] min-w-[44px] cursor-pointer" 
+            title="Subtract 1 minute"
+            aria-label="Subtract 1 minute"
+          >
+            -1m
+          </button>
+          <button 
+            type="button" 
+            id="timer-plus-1" 
+            class="inline-flex items-center justify-center px-3 py-2 bg-white hover:bg-[#FAF3EE] border border-[#EBE5D9] text-xs font-bold text-[#6B5B4F] rounded-xl min-h-[44px] min-w-[44px] cursor-pointer" 
+            title="Add 1 minute"
+            aria-label="Add 1 minute"
+          >
+            +1m
+          </button>
+        </div>
+
+        <!-- Running State: Big Countdown Clock -->
+        <div id="timer-running-box" class="hidden bg-[#FAF3EE] border border-[#9C4B25]/30 p-2.5 sm:p-3.5 rounded-2xl flex flex-col items-center gap-2 shadow-2xs">
+          <div class="flex items-center justify-center gap-2">
+            <span class="animate-pulse text-sm sm:text-base">🔥</span>
+            <span id="timer-running-display" class="font-mono text-2xl sm:text-3xl font-bold text-[#9C4B25] tracking-tight">00:00</span>
+          </div>
+
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <button 
+              type="button" 
+              id="timer-pause-resume-btn" 
+              class="inline-flex items-center justify-center px-3.5 py-2 bg-white border border-[#EBE5D9] text-[#4A3F35] text-xs font-bold rounded-xl shadow-2xs hover:bg-[#FAF3EE] cursor-pointer min-h-[44px]"
+            >
+              Pause
+            </button>
+            <button 
+              type="button" 
+              id="timer-add-min-btn" 
+              class="inline-flex items-center justify-center px-3 py-2 bg-white border border-[#EBE5D9] text-[#4A3F35] text-xs font-bold rounded-xl shadow-2xs hover:bg-[#FAF3EE] cursor-pointer min-h-[44px] min-w-[44px]"
+            >
+              +1m
+            </button>
+            <button 
+              type="button" 
+              id="timer-cancel-btn" 
+              class="inline-flex items-center justify-center px-3 py-2 bg-white border border-[#EBE5D9] text-[#7A3617] text-xs font-bold rounded-xl shadow-2xs hover:bg-red-50 cursor-pointer min-h-[44px]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <!-- Completed / Alarm State -->
+        <div id="timer-done-box" class="hidden bg-emerald-50 border border-emerald-300 p-2.5 sm:p-3.5 rounded-2xl flex flex-col items-center gap-2 animate-bounce shadow-sm">
+          <div class="flex items-center gap-1.5 text-emerald-800 font-bold text-xs sm:text-sm">
+            <span>🎉</span>
+            <span id="timer-done-label">Timer Complete!</span>
+          </div>
+          <button 
+            type="button" 
+            id="timer-dismiss-btn" 
+            class="inline-flex items-center justify-center px-4 py-2 bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs hover:bg-emerald-800 cursor-pointer min-h-[44px]"
+          >
+            Dismiss Alert
+          </button>
+        </div>
+      </div>
+
+      <div class="text-[11px] text-[#6B5B4F] pt-1 hidden sm:block">
+        Tip: Press left/right arrow keys or spacebar to navigate steps.
+      </div>
     </div>
+  </main>
 
-    <h3 class="text-xl sm:text-3xl font-serif font-bold text-[#4A3F35]" id="modal-step-title">
-      Step Title
-    </h3>
+  <!-- 3. Bottom Navigation Controls (Always Pinned, Never Scrolls On Mobile) -->
+  <footer class="shrink-0 w-full px-4 sm:px-8 py-2.5 sm:py-3.5 border-t border-[#EBE5D9] bg-[#FDFBF7] z-20 pb-[max(0.6rem,env(safe-area-inset-bottom))]">
+    <div class="flex items-center justify-between max-w-2xl mx-auto w-full gap-2 sm:gap-3">
+      <button 
+        type="button" 
+        id="prev-step-btn" 
+        class="flex-1 sm:flex-initial min-h-[44px] px-4 sm:px-6 py-2 bg-white border border-[#EBE5D9] text-[#4A3F35] hover:bg-[#FAF3EE] rounded-2xl font-bold text-xs sm:text-sm transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer shadow-2xs"
+      >
+        ← Prev Step
+      </button>
 
-    <p class="text-lg sm:text-3xl text-[#5F5045] leading-relaxed font-sans font-medium" id="modal-step-text">
-      Step instruction text goes here.
-    </p>
+      <span class="text-xs sm:text-sm font-bold text-[#6B5B4F] shrink-0 px-1" id="step-indicator">
+        Step 1 of {instructions.length}
+      </span>
 
-    <div class="text-xs text-[#6B5B4F] pt-4">
-      Tip: Press left/right arrow keys or use buttons below to navigate.
+      <button 
+        type="button" 
+        id="next-step-btn" 
+        class="flex-1 sm:flex-initial min-h-[44px] px-5 sm:px-7 py-2 bg-[#9C4B25] text-white hover:bg-[#7A3617] rounded-2xl font-bold text-xs sm:text-sm transition-all shadow-sm cursor-pointer"
+      >
+        Next Step →
+      </button>
     </div>
-  </div>
-
-  <!-- Bottom Navigation Controls -->
-  <div class="flex items-center justify-between border-t border-[#EBE5D9] pt-6 max-w-4xl mx-auto w-full gap-4">
-    <button 
-      type="button" 
-      id="prev-step-btn" 
-      class="flex-1 sm:flex-initial px-6 py-4 bg-white border border-[#EBE5D9] text-[#4A3F35] hover:bg-[#FAF3EE] rounded-2xl font-bold text-base transition-all disabled:opacity-40 disabled:pointer-events-none"
-    >
-      ← Previous Step
-    </button>
-
-    <span class="text-sm font-bold text-[#6B5B4F]" id="step-indicator">
-      Step 1 of {instructions.length}
-    </span>
-
-    <button 
-      type="button" 
-      id="next-step-btn" 
-      class="flex-1 sm:flex-initial px-8 py-4 bg-[#9C4B25] text-white hover:bg-[#7A3617] rounded-2xl font-bold text-base transition-all shadow-sm"
-    >
-      Next Step →
-    </button>
-  </div>
+  </footer>
 </div>
 
 <script>
   let wakeLock: any = null;
   let currentStepIdx = 0;
   let previousActiveElement: HTMLElement | null = null;
+
+  // Active Timer State (Immune to tab backgrounding / page changes)
+  interface ActiveTimerState {
+    stepIndex: number;
+    stepNumber: number;
+    targetEndTime: number;
+    configuredMinutes: number;
+    isPaused: boolean;
+    remainingMsWhenPaused: number | null;
+  }
+
+  let activeTimer: ActiveTimerState | null = null;
+  let timerInterval: ReturnType<typeof setInterval> | null = null;
+  let sharedAudioCtx: AudioContext | null = null;
+
+  function getAudioContext(): AudioContext | null {
+    if (!sharedAudioCtx) {
+      const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtxClass) {
+        sharedAudioCtx = new AudioCtxClass();
+      }
+    }
+    if (sharedAudioCtx && sharedAudioCtx.state === 'suspended') {
+      sharedAudioCtx.resume();
+    }
+    return sharedAudioCtx;
+  }
+
+  function playAcousticChime() {
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime); // A5 note
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.8);
+      gain.gain.setValueAtTime(0.35, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.8);
+    } catch {
+      // Audio autoplay policy fallback
+    }
+  }
 
   function initCookMode() {
     const modal = document.getElementById('cook-mode-modal');
@@ -121,8 +277,35 @@ const { title, instructions } = Astro.props;
     const stepTextEl = document.getElementById('modal-step-text');
     const indicatorEl = document.getElementById('step-indicator');
 
+    // Timer Elements
+    const idleBox = document.getElementById('timer-idle-box');
+    const idleLabel = document.getElementById('timer-idle-label');
+    const startBtn = document.getElementById('timer-start-btn');
+    const minus1Btn = document.getElementById('timer-minus-1');
+    const plus1Btn = document.getElementById('timer-plus-1');
+
+    const runningBox = document.getElementById('timer-running-box');
+    const runningDisplay = document.getElementById('timer-running-display');
+    const pauseResumeBtn = document.getElementById('timer-pause-resume-btn');
+    const addMinBtn = document.getElementById('timer-add-min-btn');
+    const cancelBtn = document.getElementById('timer-cancel-btn');
+
+    const doneBox = document.getElementById('timer-done-box');
+    const dismissBtn = document.getElementById('timer-dismiss-btn');
+
+    // Pinned Header Timer
+    const pinnedTimer = document.getElementById('modal-pinned-timer');
+    const pinnedDisplay = document.getElementById('pinned-timer-display');
+    const pinnedStepText = document.getElementById('pinned-timer-step');
+    const pinnedToggleBtn = document.getElementById('pinned-timer-toggle-btn');
+    const pinnedPauseIcon = document.getElementById('pinned-pause-icon');
+    const pinnedPlayIcon = document.getElementById('pinned-play-icon');
+    const pinnedCancelBtn = document.getElementById('pinned-timer-cancel-btn');
+
     const steps = JSON.parse(modal.dataset.steps || '[]');
     if (steps.length === 0) return;
+
+    let stepMinutesConfig = 5;
 
     async function requestWakeLock() {
       try {
@@ -145,10 +328,174 @@ const { title, instructions } = Astro.props;
       }
     }
 
-    // Auto-reacquire wake lock when cook returns to tab after switching apps/calls
     document.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'visible' && modal.classList.contains('flex')) {
         await requestWakeLock();
+      }
+    });
+
+    function formatTime(totalSeconds: number): string {
+      const m = Math.floor(totalSeconds / 60);
+      const s = totalSeconds % 60;
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function updateTimerUI() {
+      if (!activeTimer) {
+        if (runningBox) runningBox.classList.add('hidden');
+        if (doneBox) doneBox.classList.add('hidden');
+        if (idleBox) idleBox.classList.remove('hidden');
+        if (pinnedTimer) pinnedTimer.classList.add('hidden');
+        return;
+      }
+
+      const isCurrentStep = activeTimer.stepIndex === currentStepIdx;
+      const now = Date.now();
+      const remainingMs = activeTimer.isPaused
+        ? (activeTimer.remainingMsWhenPaused || 0)
+        : Math.max(0, activeTimer.targetEndTime - now);
+      const remainingSeconds = Math.ceil(remainingMs / 1000);
+      const timeStr = formatTime(remainingSeconds);
+
+      // 1. Update In-Step Box if viewing the step with the timer
+      if (isCurrentStep) {
+        if (pinnedTimer) pinnedTimer.classList.add('hidden');
+
+        if (remainingSeconds > 0) {
+          if (idleBox) idleBox.classList.add('hidden');
+          if (doneBox) doneBox.classList.add('hidden');
+          if (runningBox) runningBox.classList.remove('hidden');
+          if (runningDisplay) runningDisplay.textContent = timeStr;
+          if (pauseResumeBtn) pauseResumeBtn.textContent = activeTimer.isPaused ? 'Resume' : 'Pause';
+        } else {
+          // Timer finished
+          if (runningBox) runningBox.classList.add('hidden');
+          if (doneBox) doneBox.classList.remove('hidden');
+          if (idleBox) idleBox.classList.add('hidden');
+        }
+      } else {
+        // 2. We navigated away: show pinned timer in top bar
+        if (idleBox) idleBox.classList.remove('hidden');
+        if (runningBox) runningBox.classList.add('hidden');
+        if (doneBox) doneBox.classList.add('hidden');
+
+        if (pinnedTimer) {
+          pinnedTimer.classList.remove('hidden');
+          pinnedTimer.classList.add('flex');
+        }
+        if (pinnedDisplay) {
+          pinnedDisplay.textContent = remainingSeconds > 0 ? timeStr : 'DONE! 🎉';
+        }
+        if (pinnedStepText) {
+          pinnedStepText.textContent = `(Step ${activeTimer.stepNumber})`;
+        }
+        if (pinnedPauseIcon && pinnedPlayIcon) {
+          if (activeTimer.isPaused) {
+            pinnedPauseIcon.classList.add('hidden');
+            pinnedPlayIcon.classList.remove('hidden');
+          } else {
+            pinnedPauseIcon.classList.remove('hidden');
+            pinnedPlayIcon.classList.add('hidden');
+          }
+        }
+      }
+
+      // Check if finished
+      if (remainingSeconds <= 0 && timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        playAcousticChime();
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          navigator.vibrate([250, 100, 250]);
+        }
+      }
+    }
+
+    function startTimer(minutes: number) {
+      getAudioContext();
+      activeTimer = {
+        stepIndex: currentStepIdx,
+        stepNumber: steps[currentStepIdx]?.step || (currentStepIdx + 1),
+        targetEndTime: Date.now() + minutes * 60 * 1000,
+        configuredMinutes: minutes,
+        isPaused: false,
+        remainingMsWhenPaused: null,
+      };
+
+      if (timerInterval !== null) clearInterval(timerInterval);
+      updateTimerUI();
+      timerInterval = setInterval(updateTimerUI, 500);
+    }
+
+    function togglePauseResume() {
+      if (!activeTimer) return;
+      if (activeTimer.isPaused) {
+        // Resume
+        const remaining = activeTimer.remainingMsWhenPaused || 0;
+        activeTimer.targetEndTime = Date.now() + remaining;
+        activeTimer.isPaused = false;
+        activeTimer.remainingMsWhenPaused = null;
+        if (timerInterval !== null) clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimerUI, 500);
+      } else {
+        // Pause
+        activeTimer.remainingMsWhenPaused = Math.max(0, activeTimer.targetEndTime - Date.now());
+        activeTimer.isPaused = true;
+        if (timerInterval !== null) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+      }
+      updateTimerUI();
+    }
+
+    function addOneMinute() {
+      if (!activeTimer) return;
+      if (activeTimer.isPaused) {
+        activeTimer.remainingMsWhenPaused = (activeTimer.remainingMsWhenPaused || 0) + 60 * 1000;
+      } else {
+        activeTimer.targetEndTime += 60 * 1000;
+      }
+      updateTimerUI();
+    }
+
+    function cancelTimer() {
+      if (timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      activeTimer = null;
+      updateTimerUI();
+    }
+
+    // Attach timer control event listeners
+    startBtn?.addEventListener('click', () => {
+      startTimer(stepMinutesConfig);
+    });
+
+    minus1Btn?.addEventListener('click', () => {
+      if (stepMinutesConfig > 1) {
+        stepMinutesConfig -= 1;
+        if (idleLabel) idleLabel.textContent = `Start ${stepMinutesConfig} min timer`;
+      }
+    });
+
+    plus1Btn?.addEventListener('click', () => {
+      stepMinutesConfig += 1;
+      if (idleLabel) idleLabel.textContent = `Start ${stepMinutesConfig} min timer`;
+    });
+
+    pauseResumeBtn?.addEventListener('click', togglePauseResume);
+    pinnedToggleBtn?.addEventListener('click', togglePauseResume);
+    addMinBtn?.addEventListener('click', addOneMinute);
+    cancelBtn?.addEventListener('click', cancelTimer);
+    pinnedCancelBtn?.addEventListener('click', cancelTimer);
+    dismissBtn?.addEventListener('click', cancelTimer);
+
+    // Clicking pinned timer navigates directly to that timer's step
+    pinnedDisplay?.addEventListener('click', () => {
+      if (activeTimer) {
+        renderStep(activeTimer.stepIndex);
       }
     });
 
@@ -160,6 +507,15 @@ const { title, instructions } = Astro.props;
       if (stepTextEl) stepTextEl.textContent = step.text;
       if (indicatorEl) indicatorEl.textContent = `Step ${idx + 1} of ${steps.length}`;
 
+      // Configure default duration for this step
+      const stepDuration = step.durationMinutes || step.summerDurationMinutes || 5;
+      stepMinutesConfig = stepDuration;
+      if (idleLabel) {
+        idleLabel.textContent = step.durationMinutes 
+          ? `Start ${step.durationMinutes} min timer` 
+          : `Start ${stepDuration} min timer`;
+      }
+
       if (prevBtn) prevBtn.disabled = idx === 0;
       if (nextBtn) {
         if (idx === steps.length - 1) {
@@ -168,6 +524,8 @@ const { title, instructions } = Astro.props;
           nextBtn.textContent = 'Next Step →';
         }
       }
+
+      updateTimerUI();
     }
 
     openBtn?.addEventListener('click', () => {

@@ -22,7 +22,9 @@ Traditional online recipe blogs are plagued by 2,000-word autobiographical stori
    - **Dual-Unit Dynamic Serving Scaler:** Scalable 0.5x, 1x, 2x, 3x ingredient quantities that recalculate both volume and metric weight on the fly.
    - **Whole-Batch Baking Lock:** For `Baking` recipes, serving scaling is locked to whole-batch multipliers (`0.5x`, `1x`, `2x`) with pan crowding warnings on doubling.
    - **Baker's Percentage Engine:** Dynamic 4th unit toggle (`Dual | Grams | Cups | Baker's %`) displaying ingredient weights relative to base flour weight ($100\%$).
-   - **Pure OTG Standards:** All baking recipes are calibrated strictly for 100% Oven Toaster Griller (OTG) baking with explicit rack slots, heating rod modes, true 15-minute preheat, and top-rod foil shield cues.
+   - **Pure OTG Standards:** All baking recipes are calibrated strictly for 100% Oven Toaster Griller (OTG) baking with explicit rack slots, heating rod modes, true 15-minute preheat, and top-rod foil shield cues. Delicate custards/puddings include an OTG Bain-Marie (water bath) profile.
+   - **Air Fryer Small-Batch Calibration:** Small-batch cupcakes/muffins are calibrated with the 160°C / 4-mould rule (160°C for 14–15 mins, max 4 moulds per batch with airflow spacing for 3.5L–5.5L Indian air fryer baskets) alongside full 12-cup OTG profiles.
+   - **Artisanal Sips & Kitchen Refreshments:** Stovetop thick hot chocolates and cafe/street sodas categorized under `Breakfast` or `Snacks & Street Bites` with dual liquid ml/cups, precise flame/slurry gelatinization cues, and regional street variations (*kala namak*, *bhuna jeera*).
    - **Climate-Aware Proofing Timers:** Seasonal fermentation toggles (`[☀️ Warm Kitchen (>28°C)]` vs `[❄️ Cool/AC Kitchen (<24°C)]`) dynamically updating step timer buttons.
    - **Cook Mode (Hands-Free):** Distraction-free, large-text step-by-step cooking interface utilizing the browser's `Screen Wake Lock API` to prevent the phone/tablet screen from dimming while cooking.
    - **Integrated Timers:** Built-in step timers (e.g. "Simmer for 15 minutes [Start Timer]") with acoustic chime alerts.
