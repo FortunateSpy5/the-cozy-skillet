@@ -175,6 +175,8 @@ const allDietary = Array.from(new Set(recipes.flatMap((r) => r.data.dietary)));
             difficulty={recipe.data.difficulty}
             prepTimeMinutes={recipe.data.prepTimeMinutes}
             cookTimeMinutes={recipe.data.cookTimeMinutes}
+            proofTimeMinutes={recipe.data.proofTimeMinutes}
+            hydration={recipe.data.hydration}
             servings={recipe.data.servings}
             bakingType={recipe.data.bakingType}
             image={recipe.data.image}

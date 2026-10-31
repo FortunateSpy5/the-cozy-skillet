@@ -4,6 +4,7 @@ import IngredientList from '../components/IngredientList.astro';
 import InstructionList from '../components/InstructionList.astro';
 import CookModeModal from '../components/CookModeModal.astro';
 import CooksNotes from '../components/CooksNotes.astro';
+import OTGBakeSettings from '../components/OTGBakeSettings.astro';
 import { SITE_CONFIG } from '../data/siteConfig';
 import { CATEGORIES } from '../data/categories';
 import type { CollectionEntry } from 'astro:content';
@@ -66,7 +67,7 @@ const recipeSchema = {
 ---
 
 <Layout title={data.title} description={data.description} image={data.image} schema={recipeSchema}>
-  <article class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 recipe-container pb-24 lg:pb-12">
+  <article class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-12 recipe-container pb-24 lg:pb-12">
     
     <!-- Breadcrumbs -->
     <nav class="flex items-center gap-2 text-xs text-[#6B5B4F] mb-6 no-print">
@@ -118,12 +119,12 @@ const recipeSchema = {
         {data.title}
       </h1>
 
-      <p class="text-base sm:text-lg text-[#5F5045] leading-relaxed max-w-3xl">
+      <p class="text-base sm:text-lg text-[#5F5045] leading-relaxed max-w-4xl">
         {data.description}
       </p>
 
-      <!-- Key Metadata Grid (Adaptive for Baking rise vs active times) -->
-      <div class={`grid ${data.proofTimeMinutes ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4'} gap-3 pt-3 max-w-4xl`}>
+      <!-- Key Metadata Grid (Full width utilization) -->
+      <div class={`grid ${data.proofTimeMinutes ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4'} gap-3 pt-3 max-w-full`}>
         <div class="bg-white border border-[#EBE5D9] p-3.5 rounded-2xl text-center shadow-2xs">
           <span class="block text-[11px] font-bold uppercase text-[#6B5B4F] tracking-wider">{data.proofTimeMinutes ? 'Active Prep' : 'Prep Time'}</span>
           <span class="block text-lg font-bold text-[#4A3F35]">{data.prepTimeMinutes} mins</span>
@@ -149,19 +150,30 @@ const recipeSchema = {
       </div>
 
       <!-- Quick Action Bar -->
-      <div class="flex flex-wrap items-center gap-3 pt-4 no-print">
+      <div class="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-4 no-print">
         <CookModeModal title={data.title} instructions={data.instructions} />
+
+        <button 
+          type="button" 
+          id="wake-lock-toggle-btn"
+          class="px-3.5 py-2.5 bg-white hover:bg-[#FAF3EE] border border-[#EBE5D9] text-[#4A3F35] text-xs font-semibold rounded-2xl transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+          aria-pressed="false"
+          aria-label="Keep screen awake while cooking"
+        >
+          <span id="wake-lock-icon">🔆</span>
+          <span id="wake-lock-text">Keep Screen Awake</span>
+        </button>
 
         <a 
           href="#ingredients-section" 
-          class="px-4 py-2.5 bg-white hover:bg-[#FAF3EE] border border-[#EBE5D9] text-[#4A3F35] text-sm font-semibold rounded-2xl transition-all shadow-2xs"
+          class="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-[#FAF3EE] border border-[#EBE5D9] text-[#4A3F35] text-xs sm:text-sm font-semibold rounded-2xl transition-all shadow-2xs"
         >
           Jump to Ingredients ↓
         </a>
 
         <a 
           href="#instructions-section" 
-          class="px-4 py-2.5 bg-white hover:bg-[#FAF3EE] border border-[#EBE5D9] text-[#4A3F35] text-sm font-semibold rounded-2xl transition-all shadow-2xs"
+          class="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-[#FAF3EE] border border-[#EBE5D9] text-[#4A3F35] text-xs sm:text-sm font-semibold rounded-2xl transition-all shadow-2xs"
         >
           Jump to Steps ↓
         </a>
@@ -176,7 +188,7 @@ const recipeSchema = {
             <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
             <rect width="12" height="8" x="6" y="14"/>
           </svg>
-          <span>Print Recipe</span>
+          <span class="hidden sm:inline">Print Recipe</span>
         </button>
       </div>
     </div>
@@ -193,11 +205,16 @@ const recipeSchema = {
       </div>
     )}
 
+    <!-- OTG Bake Profile Card (When defined for Baking recipes) -->
+    {data.otgProfile && (
+      <OTGBakeSettings profile={data.otgProfile} />
+    )}
+
     <!-- 2-COLUMN RESPONSIVE KITCHEN GRID -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start mb-12">
       
       <!-- LEFT COLUMN: Sticky Ingredients & Pan Equipment (5 Cols) -->
-      <div class="lg:col-span-5 lg:sticky lg:top-20 space-y-6">
+      <div class="lg:col-span-5 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto space-y-6 pr-1.5">
         <div id="ingredients-section" class="scroll-mt-24">
           <IngredientList 
             ingredients={data.ingredients} 
@@ -292,10 +309,15 @@ const recipeSchema = {
 
   <!-- Mobile Floating Kitchen Dock -->
   <div class="lg:hidden fixed bottom-4 left-4 right-4 z-40 bg-[#4A3F35]/95 backdrop-blur-md text-white p-2 rounded-2xl shadow-xl border border-white/10 flex items-center justify-around text-xs font-semibold no-print">
-    <a href="#ingredients-section" class="px-3 py-2 rounded-xl hover:bg-white/10 flex items-center gap-1.5 transition-colors">
+    <button 
+      type="button" 
+      id="mobile-peek-ingredients-btn"
+      class="px-3 py-2 rounded-xl hover:bg-white/10 flex items-center gap-1.5 transition-colors cursor-pointer"
+      aria-label="Open ingredients drawer"
+    >
       <span>📋</span>
       <span>Ingredients</span>
-    </a>
+    </button>
     <a href="#instructions-section" class="px-3 py-2 rounded-xl hover:bg-white/10 flex items-center gap-1.5 transition-colors">
       <span>🍳</span>
       <span>Steps</span>
@@ -303,10 +325,213 @@ const recipeSchema = {
     <button 
       type="button" 
       onclick="document.getElementById('open-cook-mode')?.click()" 
-      class="px-4 py-2 bg-[#9C4B25] hover:bg-[#7A3617] text-white rounded-xl font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+      class="px-4 py-2 bg-[#9C4B25] hover:bg-[#7A3617] text-white rounded-xl font-bold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
     >
       <span>⚡</span>
       <span>Cook Mode</span>
     </button>
   </div>
+
+  <!-- Mobile Quick-Peek Ingredients Drawer Modal -->
+  <div id="mobile-ingredients-drawer" class="lg:hidden fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <!-- Backdrop overlay -->
+    <div id="drawer-backdrop" class="fixed inset-0 bg-[#4A3F35]/60 backdrop-blur-xs transition-opacity"></div>
+    
+    <!-- Drawer Sheet -->
+    <div class="fixed inset-x-0 bottom-0 max-h-[85vh] bg-[#FDFBF7] rounded-t-3xl shadow-2xl border-t border-[#EBE5D9] flex flex-col z-10">
+      <!-- Drag handle & Header -->
+      <div class="p-4 border-b border-[#EBE5D9] flex items-center justify-between bg-white rounded-t-3xl">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📋</span>
+          <div>
+            <h3 id="drawer-title" class="text-base font-serif font-bold text-[#4A3F35]">Quick Ingredients Peek</h3>
+            <p class="text-[11px] text-[#6B5B4F]">Check quantities without losing your cooking step.</p>
+          </div>
+        </div>
+        <button 
+          type="button" 
+          id="close-drawer-btn"
+          class="w-9 h-9 rounded-full bg-[#FAF3EE] hover:bg-[#EBE5D9] text-[#4A3F35] flex items-center justify-center font-bold text-base cursor-pointer transition-colors"
+          aria-label="Close ingredients drawer"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Drawer Content -->
+      <div id="drawer-content" class="p-4 overflow-y-auto space-y-4 text-xs">
+        {data.ingredients.map((group) => {
+          const title = group.groupTitle || group.category;
+          return (
+            <div class="bg-white p-3.5 rounded-2xl border border-[#EBE5D9]">
+              {title && (
+                <h4 class="font-bold text-[#9C4B25] uppercase tracking-wider text-[11px] mb-2 border-b border-[#FAF3EE] pb-1">
+                  {title}
+                </h4>
+              )}
+              <ul class="space-y-2">
+                {group.items.map((item) => (
+                  <li class="flex items-start justify-between gap-2 py-0.5 border-b border-[#FAF3EE] last:border-none">
+                    <span class="text-[#4A3F35] font-medium flex-1">
+                      {item.name}
+                      {item.notes && <span class="text-[#6B5B4F] text-[10px] italic block">({item.notes})</span>}
+                    </span>
+                    <span class="font-bold text-[#9C4B25] shrink-0 text-right">
+                      {item.amount !== undefined && <span>{item.amount} {item.unit}</span>}
+                      {item.metricAmount !== undefined && (
+                        <span class="text-[11px] font-semibold text-[#6B5B4F] bg-[#FAF3EE] px-1.5 py-0.5 rounded-md border border-[#EBE5D9] ml-1">
+                          {item.metricAmount}{item.metricUnit}
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+
+      <!-- Drawer Footer -->
+      <div class="p-3 bg-white border-t border-[#EBE5D9] flex items-center justify-between">
+        <a 
+          href="#ingredients-section" 
+          id="drawer-jump-full-btn"
+          class="text-xs text-[#9C4B25] font-bold hover:underline py-1.5 px-3"
+        >
+          View Full Interactive List ↓
+        </a>
+        <button 
+          type="button" 
+          id="drawer-done-btn"
+          class="px-4 py-2 bg-[#9C4B25] text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer"
+        >
+          Back to Recipe
+        </button>
+      </div>
+    </div>
+  </div>
 </Layout>
+
+<script>
+  function setupMobileDrawer() {
+    const drawer = document.getElementById('mobile-ingredients-drawer');
+    if (!drawer || drawer.dataset.initialized === 'true') return;
+    drawer.dataset.initialized = 'true';
+
+    const openBtn = document.getElementById('mobile-peek-ingredients-btn');
+    const backdrop = document.getElementById('drawer-backdrop');
+    const closeBtn = document.getElementById('close-drawer-btn');
+    const doneBtn = document.getElementById('drawer-done-btn');
+    const jumpFullBtn = document.getElementById('drawer-jump-full-btn');
+
+    if (!openBtn) return;
+
+    function openDrawer() {
+      drawer?.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDrawer() {
+      drawer?.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    openBtn.addEventListener('click', openDrawer);
+    backdrop?.addEventListener('click', closeDrawer);
+    closeBtn?.addEventListener('click', closeDrawer);
+    doneBtn?.addEventListener('click', closeDrawer);
+    jumpFullBtn?.addEventListener('click', closeDrawer);
+  }
+
+  // Kitchen Screen Wake Lock Toggle with visibilitychange auto-reacquisition
+  function setupWakeLock() {
+    const btn = document.getElementById('wake-lock-toggle-btn');
+    if (!btn || btn.dataset.initialized === 'true') return;
+    btn.dataset.initialized = 'true';
+
+    const icon = document.getElementById('wake-lock-icon');
+    const text = document.getElementById('wake-lock-text');
+    let wakeLock: any = null;
+    let userRequestedWakeLock = false;
+
+    if (!('wakeLock' in navigator)) {
+      btn.style.display = 'none';
+      return;
+    }
+
+    async function acquireLock() {
+      try {
+        wakeLock = await (navigator as any).wakeLock.request('screen');
+        btn?.setAttribute('aria-pressed', 'true');
+        btn?.classList.add('bg-amber-100', 'text-amber-900', 'border-amber-300');
+        btn?.classList.remove('bg-white', 'text-[#4A3F35]');
+        if (text) text.textContent = 'Screen Stays Awake';
+        if (icon) icon.textContent = '☀️';
+
+        wakeLock.addEventListener('release', () => {
+          wakeLock = null;
+          // Only reset UI if user explicitly turned it off
+          if (!userRequestedWakeLock) {
+            btn?.setAttribute('aria-pressed', 'false');
+            btn?.classList.remove('bg-amber-100', 'text-amber-900', 'border-amber-300');
+            btn?.classList.add('bg-white', 'text-[#4A3F35]');
+            if (text) text.textContent = 'Keep Screen Awake';
+            if (icon) icon.textContent = '🔆';
+          }
+        });
+      } catch (err) {
+        console.warn('Wake lock request failed:', err);
+        userRequestedWakeLock = false;
+        btn?.setAttribute('aria-pressed', 'false');
+        btn?.classList.remove('bg-amber-100', 'text-amber-900', 'border-amber-300');
+        btn?.classList.add('bg-white', 'text-[#4A3F35]');
+        if (text) text.textContent = 'Keep Screen Awake';
+        if (icon) icon.textContent = '🔆';
+      }
+    }
+
+    async function releaseLock() {
+      userRequestedWakeLock = false;
+      if (wakeLock !== null) {
+        try {
+          await wakeLock.release();
+        } catch {
+          // Ignore release errors
+        }
+        wakeLock = null;
+      }
+      btn?.setAttribute('aria-pressed', 'false');
+      btn?.classList.remove('bg-amber-100', 'text-amber-900', 'border-amber-300');
+      btn?.classList.add('bg-white', 'text-[#4A3F35]');
+      if (text) text.textContent = 'Keep Screen Awake';
+      if (icon) icon.textContent = '🔆';
+    }
+
+    async function toggleWakeLock() {
+      if (userRequestedWakeLock) {
+        await releaseLock();
+      } else {
+        userRequestedWakeLock = true;
+        await acquireLock();
+      }
+    }
+
+    btn.addEventListener('click', toggleWakeLock);
+
+    // Re-acquire lock when user returns to tab after switching apps/calls
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible' && userRequestedWakeLock && wakeLock === null) {
+        await acquireLock();
+      }
+    });
+  }
+
+  function initPage() {
+    setupMobileDrawer();
+    setupWakeLock();
+  }
+
+  initPage();
+  document.addEventListener('astro:page-load', initPage);
+</script>

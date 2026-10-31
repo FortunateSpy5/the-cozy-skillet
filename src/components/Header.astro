@@ -13,35 +13,36 @@ const isActive = (path: string) => path === '/' ? pathname === '/' : pathname.st
     </a>
 
     <!-- Navigation links -->
-    <nav class="flex items-center gap-1.5 sm:gap-4 md:gap-6">
+    <nav class="flex items-center gap-1 sm:gap-4 md:gap-6 shrink-0">
       <a 
         href="/" 
-        class={`text-sm font-medium transition-colors px-2.5 py-1.5 rounded-lg ${isActive('/') ? 'text-[#9C4B25] font-semibold bg-[#FAF3EE]' : 'text-[#6B5B4F] hover:text-[#9C4B25]'}`}
+        class={`text-xs sm:text-sm font-medium transition-colors px-2 sm:px-2.5 py-1.5 rounded-lg ${isActive('/') ? 'text-[#9C4B25] font-semibold bg-[#FAF3EE]' : 'text-[#6B5B4F] hover:text-[#9C4B25]'}`}
       >
         Recipes
       </a>
       <a 
         href="/baking" 
-        class={`text-sm font-medium transition-colors px-2.5 py-1.5 rounded-lg flex items-center gap-1 ${isActive('/baking') ? 'text-[#9C4B25] font-semibold bg-[#FAF3EE]' : 'text-[#6B5B4F] hover:text-[#9C4B25]'}`}
+        class={`text-xs sm:text-sm font-medium transition-colors px-2 sm:px-2.5 py-1.5 rounded-lg flex items-center gap-1 ${isActive('/baking') ? 'text-[#9C4B25] font-semibold bg-[#FAF3EE]' : 'text-[#6B5B4F] hover:text-[#9C4B25]'}`}
       >
         <span>🥖</span>
-        <span>Baking Hub</span>
+        <span class="hidden sm:inline">Baking Hub</span>
+        <span class="sm:hidden">Baking</span>
       </a>
       <a 
         href="/categories" 
-        class={`text-sm font-medium transition-colors px-2.5 py-1.5 rounded-lg ${isActive('/categories') ? 'text-[#9C4B25] font-semibold bg-[#FAF3EE]' : 'text-[#6B5B4F] hover:text-[#9C4B25]'}`}
+        class={`text-xs sm:text-sm font-medium transition-colors px-2.5 py-1.5 rounded-lg hidden md:inline-block ${isActive('/categories') ? 'text-[#9C4B25] font-semibold bg-[#FAF3EE]' : 'text-[#6B5B4F] hover:text-[#9C4B25]'}`}
       >
         Categories
       </a>
       <a 
         href="/about" 
-        class={`text-sm font-medium transition-colors px-2.5 py-1.5 rounded-lg hidden md:inline-block ${isActive('/about') ? 'text-[#9C4B25] font-semibold bg-[#FAF3EE]' : 'text-[#6B5B4F] hover:text-[#9C4B25]'}`}
+        class={`text-xs sm:text-sm font-medium transition-colors px-2.5 py-1.5 rounded-lg hidden md:inline-block ${isActive('/about') ? 'text-[#9C4B25] font-semibold bg-[#FAF3EE]' : 'text-[#6B5B4F] hover:text-[#9C4B25]'}`}
       >
         About
       </a>
       <a 
         href="/search" 
-        class={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl border border-[#EBE5D9] transition-all ${isActive('/search') ? 'bg-[#9C4B25] text-white border-[#9C4B25]' : 'bg-[#FDFBF7] text-[#4A3F35] hover:border-[#9C4B25] hover:text-[#9C4B25]'}`}
+        class={`flex items-center gap-1.5 text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-1.5 rounded-xl border border-[#EBE5D9] transition-all ${isActive('/search') ? 'bg-[#9C4B25] text-white border-[#9C4B25]' : 'bg-[#FDFBF7] text-[#4A3F35] hover:border-[#9C4B25] hover:text-[#9C4B25]'}`}
         aria-label="Search recipes"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

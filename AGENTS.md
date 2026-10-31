@@ -16,9 +16,14 @@ Traditional online recipe blogs are plagued by 2,000-word autobiographical stori
    - Dual measurements: **Weight in grams (g) / milliliters (ml)** AND **Volume (cups, tbsp, tsp)** must both be provided.
    - Temperature instructions must specify **Celsius (°C)** (with Fahrenheit in parentheses).
    - Cooking steps consider gas burner flame control, induction stoves, and cookware like seasoned cast-iron skillets, heavy iron tawas, or stainless steel kadais.
-3. **Interactive Kitchen UX:**
-   - **Interactive Ingredients:** Check off ingredients as you prep.
+3. **Interactive Kitchen UX & Baking Architecture:**
+   - **Interactive Ingredients & Mise-en-Place:** Check off ingredients as you prep with a real-time Mise-en-Place progress counter and visual completion bar.
+   - **Mobile Quick-Peek Drawer:** Slide-up ingredients sheet accessible from the mobile floating dock, allowing cooks to check amounts and prep cues without losing their step in the instructions.
    - **Dual-Unit Dynamic Serving Scaler:** Scalable 0.5x, 1x, 2x, 3x ingredient quantities that recalculate both volume and metric weight on the fly.
+   - **Whole-Batch Baking Lock:** For `Baking` recipes, serving scaling is locked to whole-batch multipliers (`0.5x`, `1x`, `2x`) with pan crowding warnings on doubling.
+   - **Baker's Percentage Engine:** Dynamic 4th unit toggle (`Dual | Grams | Cups | Baker's %`) displaying ingredient weights relative to base flour weight ($100\%$).
+   - **Pure OTG Standards:** All baking recipes are calibrated strictly for 100% Oven Toaster Griller (OTG) baking with explicit rack slots, heating rod modes, true 15-minute preheat, and top-rod foil shield cues.
+   - **Climate-Aware Proofing Timers:** Seasonal fermentation toggles (`[☀️ Warm Kitchen (>28°C)]` vs `[❄️ Cool/AC Kitchen (<24°C)]`) dynamically updating step timer buttons.
    - **Cook Mode (Hands-Free):** Distraction-free, large-text step-by-step cooking interface utilizing the browser's `Screen Wake Lock API` to prevent the phone/tablet screen from dimming while cooking.
    - **Integrated Timers:** Built-in step timers (e.g. "Simmer for 15 minutes [Start Timer]") with acoustic chime alerts.
    - **Instant Ingredient Search:** Client-side search engine allowing you to search by ingredients currently in your fridge.
@@ -117,6 +122,53 @@ nutrition:
   protein: "34g"
   carbs: "2g"
   fat: "28g"
+```
+
+### Pure OTG Baking Frontmatter Extension:
+For recipes in `categories: ["Baking"]`, the following fields and structures are supported:
+```yaml
+categories: ["Baking"]
+bakingType: "Breads & Flatbreads" # Breads & Flatbreads, Cakes & Tea Loaves, Cookies, Brownies & Bars
+prepTimeMinutes: 25 # Hands-on active time
+proofTimeMinutes: 75 # Passive rise/fermentation time
+cookTimeMinutes: 25 # Active OTG bake time
+hydration: 68 # Baker's percentage hydration (e.g. 68% or 73%)
+bakerFlourWeight: 320 # Total base flour in grams for Baker's % calculation
+servings: 9 # Portion yield (e.g. 9 pavs, 12 slices)
+otgProfile:
+  preheatTempC: 180
+  preheatMins: 15
+  bakeTempC: 180
+  rodMode: "Both Rods On (Top + Bottom) • Fan Off"
+  rackPosition: "Lower-Middle Rack (25L–35L OTG) / Middle Rack (40L+ OTG)"
+  bakingVessel: "9×4 inch Anodized Aluminium Loaf Tin"
+  foilTentCue: "Tent loosely with aluminium foil at 15 mins once the dome is golden."
+ingredients:
+  - groupTitle: "Tangzhong (Moisture & Softness Paste)"
+    items:
+      - name: "all-purpose flour (maida)"
+        amount: 2.5
+        unit: "tbsp"
+        metricAmount: 20
+        metricUnit: "g"
+        bakersPercentage: 6
+  - groupTitle: "Optional Boosters"
+    items:
+      - name: "vital wheat gluten"
+        amount: 2
+        unit: "tsp"
+        metricAmount: 6
+        metricUnit: "g"
+        optional: true
+        boosterEffect: "Transforms 10% Indian maida into 13% high-protein bakery flour"
+        bakersPercentage: 2
+instructions:
+  - step: 4
+    title: "First Bulk Rise"
+    text: "Proof until doubled in volume."
+    durationMinutes: 45
+    summerDurationMinutes: 45 # Dynamically active when warm kitchen is selected
+    winterDurationMinutes: 75 # Dynamically active when cool kitchen is selected
 ```
 
 ---

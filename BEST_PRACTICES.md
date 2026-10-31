@@ -56,6 +56,15 @@ The Cozy Skillet strictly uses the warm, tactile, editorial palette shared with 
 4. **Zero-Fluff Print Stylesheet:**
    * Defined in `src/styles/global.css` under `@media print`.
    * Completely suppresses headers, footers, interactive buttons, and floating docks, producing an ink-friendly, single-page recipe printout.
+5. **Pure OTG Bake Settings Card (`src/components/OTGBakeSettings.astro`):**
+   * High-contrast technical banner rendered on all `Baking` recipes detailing exact preheat standards, rod modes, rack slots by OTG size, and top-rod foil shields.
+6. **Baking Ergonomics & Whole-Batch Scaling (`src/components/IngredientList.astro`):**
+   * Dynamic Baker's % mode ($100\%$ flour baseline). Serving scaling locked to whole batches (`0.5x`, `1x`, `2x`) with an automatic pan-crowding warning for double batches.
+   * Climate-aware proofing timer toggles in `src/components/InstructionList.astro` adjusting fermentation durations based on ambient kitchen temperature.
+7. **Mobile Quick-Peek Ingredients Drawer (`src/layouts/RecipeLayout.astro`):**
+   * High-contrast slide-up drawer modal (`#mobile-ingredients-drawer`) accessible directly from the mobile floating dock (`mobile-peek-ingredients-btn`). Eliminates vertical scrolling whiplash on mobile viewports so cooks can check amounts without losing their step in the instructions.
+8. **Mise-en-Place Preparation Tracker (`src/components/IngredientList.astro`):**
+   * Interactive prep checklist with real-time progress text (`#prep-progress-text`) and a smooth progress bar (`#prep-progress-bar`) measuring readiness before cooking begins.
 
 ---
 

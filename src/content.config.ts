@@ -62,6 +62,17 @@ const recipes = defineCollection({
         fat: z.string().optional(),
       })
       .optional(),
+    otgProfile: z
+      .object({
+        preheatTempC: z.number(),
+        preheatMins: z.number().default(15),
+        bakeTempC: z.number(),
+        rodMode: z.string(),
+        rackPosition: z.string(),
+        bakingVessel: z.string(),
+        foilTentCue: z.string().optional(),
+      })
+      .optional(),
   }),
 });
 

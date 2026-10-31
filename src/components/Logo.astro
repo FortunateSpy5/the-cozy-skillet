@@ -29,10 +29,10 @@ const badgeSizes = {
 };
 
 const wordmarkSizes = {
-  sm: 'text-base',
-  md: 'text-xl',
-  lg: 'text-2xl',
-  xl: 'text-3xl',
+  sm: 'text-sm sm:text-base',
+  md: 'text-base sm:text-xl',
+  lg: 'text-xl sm:text-2xl',
+  xl: 'text-2xl sm:text-3xl',
 };
 ---
 
@@ -90,7 +90,7 @@ const wordmarkSizes = {
         The Cozy Skillet
       </span>
       {showTagline && (
-        <span class="block text-[10px] font-sans font-semibold uppercase tracking-wider text-[#9C4B25] mt-1">
+        <span class="hidden sm:block text-[10px] font-sans font-semibold uppercase tracking-wider text-[#9C4B25] mt-1">
           No-Fluff Digital Cookbook
         </span>
       )}

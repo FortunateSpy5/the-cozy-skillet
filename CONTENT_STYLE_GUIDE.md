@@ -104,6 +104,11 @@ To guarantee precision for both weeknight cooks and bakers, **every ingredient m
 | **Mustard Oil / Cooking Oil** | 220ml | 14ml | 4.5ml |
 | **Fine Table Salt** | — | 18g | 6g |
 
+### Preparation Cues, Mise-en-Place & Quick-Peek Readiness:
+* **Descriptive Prep Cues in `notes:`** Every ingredient `notes:` field should specify the ingredient's prepped physical state (e.g., `"finely minced"`, `"patted dry with paper towels"`, `"softened at room temperature"`).
+* **Mise-en-Place Progress Engine:** Checking off items advances the visual completion bar and counter (`X of Y prepped`), confirming full readiness before the cook turns on a burner or preheats the OTG.
+* **Mobile Quick-Peek Integration:** The mobile slide-up drawer extracts both volume/metric quantities and these prep notes so the cook never has to scroll away from their active step to double-check amounts.
+
 ---
 
 ## 4. Writing Instruction Steps
@@ -119,6 +124,9 @@ To guarantee precision for both weeknight cooks and bakers, **every ingredient m
 4. **Stovetop Heat Guidance:**
    * Always indicate flame level: `Low flame (chhoti aanch)`, `Medium flame`, or `High flame (tez aanch)`.
    * If induction-friendly, specify approximate wattage (e.g., `800W simmer`, `1400W sear`).
+5. **Climate-Aware Proofing Timers:**
+   * For baking recipes with yeast fermentation, define `summerDurationMinutes` and `winterDurationMinutes` on bulk rise and proofing steps.
+   * Feeds the interactive kitchen temperature toggle (`☀️ Warm >28°C` vs `❄️ Cool <24°C`) to dynamically calibrate countdown timers.
 
 ---
 
@@ -138,3 +146,28 @@ Every non-Indian recipe must provide an **Indian Kitchen Note** under `notes:`:
   * *Kosher salt* $\rightarrow$ Standard rock salt (sendha namak) or table salt (reduce amount by 25%).
 * **Cookware:**
   * If a recipe specifies a cast-iron skillet, provide alternatives for a seasoned cast-iron dosa tawa or heavy stainless steel kadai.
+
+---
+
+## 6. Pure OTG Baking Standards & Golden Rules
+
+All recipes in the `Baking` category are calibrated strictly for **100% Oven Toaster Griller (OTG) baking** (Bajaj, Morphy Richards, Borosil, Agaro, Wonderchef 25L–60L). Stovetop tawa or microwave workarounds are strictly banned for bread recipes.
+
+### The 4 OTG Baking Commandments:
+1. **The 15-Minute True Preheat:**
+   * Always specify preheating for 15 minutes with **Both Rods On (Top + Bottom)**. Tabletop OTGs have smaller cavities that lose rapid heat upon door opening; a full preheat stabilizes the oven walls.
+2. **Rack Position by OTG Capacity:**
+   * **Small/Medium OTGs (19L–35L):** Always specify the **Lower-Middle Rack** (one notch below center) for loaves and buns so the close top heating element doesn't scorch domes before the crumb bakes through.
+   * **Large OTGs (40L–60L):** Use the **Center Rack**.
+   * **Crispy Base Breads (Focaccia / Boule):** Place on the **Lowest Rack Slot** directly above the bottom rod.
+3. **Heating Rod Selection:**
+   * Standard Yeast Breads: `Both Rods On (Top + Bottom) • Fan Off`. Radiant static heat provides maximum oven spring without prematurely drying out the crust.
+4. **The Top-Rod Foil Shield Cue:**
+   * Enriched doughs containing butter, honey, milk powder, or egg glazes brown rapidly under exposed top elements. Always specify an explicit tenting cue (e.g. *"Tent loosely with aluminium foil at 15 mins if already deep golden"*).
+
+### Food Science Techniques for Indian Flour:
+* **The Tangzhong Gel:** Cook 1 part maida to 5 parts liquid to 65°C to lock moisture into low-protein (9.5–10.5%) Indian flour.
+* **The Boiling-Milk Atta Scald:** Pour boiling liquid over oats and 15–20% of whole wheat atta to soften sharp bran flakes and unlock natural malt sweetness.
+* **Browned Amul Butter:** Simmer Amul butter 3–4 minutes until nutty hazelnut milk solids form; injects deep butterscotch caramel aromatics into brioche and sandwich loaves.
+* **The 1 Tbsp Dahi Shortcut:** 15g room-temperature curd introduces natural lactic acid, replicating overnight sourdough depth in a 2-hour bake.
+

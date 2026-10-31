@@ -52,6 +52,7 @@ the-cozy-skillet/
 │   │   ├── InstructionList.astro   # Step-by-step instructions & timer triggers
 │   │   ├── CookModeModal.astro     # Fullscreen hands-free cooking interface
 │   │   ├── CooksNotes.astro        # Client-side notes persisted in localStorage
+│   │   ├── OTGBakeSettings.astro   # Pure OTG heating rod, rack position & preheat card
 │   │   └── GroceryExporter.astro   # 1-tap WhatsApp & clipboard shopping exporter
 │   │
 │   ├── content/                    # Markdown & MDX recipe repository
@@ -125,6 +126,31 @@ The Cozy Skillet adopts a **Zero-JS by Default** philosophy. JavaScript is never
 * **Mechanism:** At build time, all recipe ingredients, titles, categories, and tags are pre-compiled into a lightweight JSON array in the page's `data-index` attribute.
 * **Filtering:** Instant multi-field substring evaluation on `input` events with zero network latency.
 
+### F. Baker's Percentage Engine (`src/components/IngredientList.astro`)
+* **Mechanism:** Dynamic 4th unit toggle (`Dual | Grams (g) | Cups | Baker's %`) available for `Baking` recipes.
+* **Formula:** $\text{Baker's \%} = \frac{\text{Ingredient Metric Weight (g)}}{\text{Base Flour Weight (g)}} \times 100\%$
+* Base flour weight is defined explicitly via `bakerFlourWeight` or aggregated from non-optional flour/maida/atta items.
+* **Vessel Safety:** Locks scaling to whole-batch multipliers (`0.5x`, `1x`, `2x`) and renders `#baking-scale-warning` on $\ge 2\times$.
+
+### G. Climate-Aware Proofing Timers (`src/components/InstructionList.astro`)
+* **Mechanism:** Interactive seasonal kitchen toggle: `[☀️ Warm Kitchen (>28°C)]` vs `[❄️ Cool/AC Kitchen (<24°C)]`.
+* **State:** Modifies `data-minutes` and `.timer-label` on step timer buttons dynamically, feeding the countdown clock with seasonally adjusted fermentation windows.
+
+### H. Pure OTG Baking Architecture (`src/components/OTGBakeSettings.astro`)
+* **Standard:** All baking recipes standardize on 100% Oven Toaster Griller tabletop baking.
+* **Parameters:** `preheatTempC` (15m true preheat with both rods on), `bakeTempC`, `rodMode`, `rackPosition`, `bakingVessel`, and top-rod `foilTentCue`.
+
+### I. Mobile Quick-Peek Ingredients Drawer (`src/layouts/RecipeLayout.astro`)
+* **Mechanism:** Triggered from the fixed mobile floating dock (`#mobile-peek-ingredients-btn`).
+* **Ergonomics:** Renders ingredient amounts, units, metric conversions, and prep notes in a slide-up drawer modal sheet (`#mobile-ingredients-drawer`), eliminating vertical "scrolling whiplash" while reading multi-step instructions on small viewports.
+* **Dismissal:** Instant one-tap backdrop click, close button, or jump-to-full-interactive-list navigation.
+
+### J. Mise-en-Place Prep Tracker (`src/components/IngredientList.astro`)
+* **Mechanism:** Real-time visual progress tracker measuring kitchen readiness before cooking begins.
+* **State Engine:** Updates `#prep-progress-text` and `#prep-progress-bar` dynamically as checkboxes are toggled:
+  $$\text{Progress} = \frac{\text{Checked Items}}{\text{Total Items}} \times 100\%$$
+* Completed ingredients render with strikethrough text and `Fresh Sage (#4A7C59)` accent highlights.
+
 ---
 
 ## 4. Content Collection Schema Standard (`src/content.config.ts`)
@@ -145,13 +171,26 @@ const recipes = defineCollection({
     tags: z.array(z.string()).default([]),
     dietary: z.array(z.string()).default([]),
     difficulty: z.enum(['Easy', 'Medium', 'Advanced']).default('Easy'),
-    prepTimeMinutes: z.number().default(10),
-    cookTimeMinutes: z.number().default(20),
+    prepTimeMinutes: z.number().default(10), // Hands-on active prep time
+    cookTimeMinutes: z.number().default(20), // Active cook or bake time
+    proofTimeMinutes: z.number().optional(),  // Passive dough rising/fermentation time
+    hydration: z.union([z.number(), z.string()]).optional(), // Baker's hydration percentage
+    bakerFlourWeight: z.number().optional(), // Base flour weight in grams (100%)
     servings: z.number().default(4),
     equipment: z.array(z.string()).default(['Skillet']),
+    otgProfile: z.object({
+      preheatTempC: z.number(),
+      preheatMins: z.number().default(15),
+      bakeTempC: z.number(),
+      rodMode: z.string(),
+      rackPosition: z.string(),
+      bakingVessel: z.string(),
+      foilTentCue: z.string().optional(),
+    }).optional(),
     ingredients: z.array(
       z.object({
-        category: z.string().default('Ingredients'),
+        category: z.string().optional(),
+        groupTitle: z.string().optional(),
         items: z.array(
           z.object({
             name: z.string(),
@@ -160,6 +199,9 @@ const recipes = defineCollection({
             metricAmount: z.union([z.number(), z.string()]).optional(),
             metricUnit: z.string().optional(),
             notes: z.string().optional(),
+            optional: z.boolean().default(false),
+            boosterEffect: z.string().optional(),
+            bakersPercentage: z.number().optional(),
           })
         ),
       })
@@ -170,6 +212,8 @@ const recipes = defineCollection({
         title: z.string().optional(),
         text: z.string(),
         durationMinutes: z.number().optional(),
+        summerDurationMinutes: z.number().optional(),
+        winterDurationMinutes: z.number().optional(),
       })
     ),
     notes: z.array(z.string()).default([]),

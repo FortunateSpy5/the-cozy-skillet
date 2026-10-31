@@ -45,7 +45,7 @@ const calculatedFlourWeight = (() => {
 })();
 ---
 
-<div class="bg-white rounded-3xl border border-[#EBE5D9] p-6 sm:p-8 shadow-xs" id="ingredient-card" data-is-baking={isBaking ? 'true' : 'false'}>
+<div class="bg-white rounded-3xl border border-[#EBE5D9] p-4 sm:p-6 lg:p-8 shadow-xs" id="ingredient-card" data-is-baking={isBaking ? 'true' : 'false'}>
   <!-- Header & Serving Scaler & Unit Preferences -->
   <div class="flex flex-col lg:flex-row lg:items-center justify-between pb-6 border-b border-[#EBE5D9] gap-4">
     <div>
@@ -54,43 +54,50 @@ const calculatedFlourWeight = (() => {
     </div>
 
     <div class="flex flex-wrap items-center gap-3">
-      <!-- Unit Preference Toggle (Persists to localStorage) -->
-      <div class="flex items-center gap-1 bg-[#FAF3EE] p-1 rounded-2xl border border-[#EBE5D9] flex-wrap">
+      <!-- Unit Preference Toggle (Dual | Grams | Cups) -->
+      <div class="flex items-center gap-1 bg-[#FAF3EE] p-1 rounded-2xl border border-[#EBE5D9]">
         <button 
           type="button" 
-          class="unit-pref-btn text-xs font-bold py-1.5 px-3 rounded-xl transition-all bg-[#9C4B25] text-white cursor-pointer" 
+          class="unit-pref-btn text-xs font-bold py-1.5 px-2.5 sm:px-3 rounded-xl transition-all bg-[#9C4B25] text-white cursor-pointer" 
           data-pref="dual" 
+          aria-pressed="true"
           aria-label="Show dual units (cups and grams)"
         >
           Dual
         </button>
         <button 
           type="button" 
-          class="unit-pref-btn text-xs font-bold py-1.5 px-3 rounded-xl transition-all bg-white text-[#6B5B4F] hover:text-[#9C4B25] cursor-pointer" 
+          class="unit-pref-btn text-xs font-bold py-1.5 px-2.5 sm:px-3 rounded-xl transition-all bg-white text-[#6B5B4F] hover:text-[#9C4B25] cursor-pointer" 
           data-pref="metric" 
+          aria-pressed="false"
           aria-label="Show metric weight in grams"
         >
-          Grams (g)
+          Grams
         </button>
         <button 
           type="button" 
-          class="unit-pref-btn text-xs font-bold py-1.5 px-3 rounded-xl transition-all bg-white text-[#6B5B4F] hover:text-[#9C4B25] cursor-pointer" 
+          class="unit-pref-btn text-xs font-bold py-1.5 px-2.5 sm:px-3 rounded-xl transition-all bg-white text-[#6B5B4F] hover:text-[#9C4B25] cursor-pointer" 
           data-pref="volume" 
+          aria-pressed="false"
           aria-label="Show volume in cups and spoons"
         >
           Cups
         </button>
-        {isBaking && (
-          <button 
-            type="button" 
-            class="unit-pref-btn text-xs font-bold py-1.5 px-3 rounded-xl transition-all bg-white text-[#6B5B4F] hover:text-[#9C4B25] cursor-pointer" 
-            data-pref="bakers" 
-            aria-label="Show Baker's percentages relative to flour"
-          >
-            Baker's %
-          </button>
-        )}
       </div>
+
+      <!-- Dedicated Baker's % Toggle (Default OFF, Baking recipes only) -->
+      {isBaking && (
+        <button 
+          type="button" 
+          id="bakers-pct-toggle"
+          class="text-xs font-bold py-1.5 px-2.5 sm:px-3 rounded-2xl transition-all bg-white text-[#6B5B4F] border border-[#EBE5D9] hover:border-[#9C4B25] hover:text-[#9C4B25] cursor-pointer flex items-center gap-1 shadow-2xs" 
+          aria-pressed="false"
+          aria-label="Toggle Baker's percentage tags"
+        >
+          <span>⚖️</span>
+          <span>Baker's %</span>
+        </button>
+      )}
 
       <!-- Scaler Control (Whole-batch scaling for Baking) -->
       <div class="flex items-center gap-2 bg-[#FAF3EE] p-1.5 rounded-2xl border border-[#EBE5D9]">
@@ -99,11 +106,11 @@ const calculatedFlourWeight = (() => {
           <strong id="display-servings" class="text-[#9C4B25]" data-original={servings}>{servings}</strong>
         </span>
         <div class="flex items-center gap-1">
-          <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer" data-multiplier="0.5" aria-label="Scale ingredients to half servings">0.5x</button>
-          <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-[#9C4B25] text-white shadow-xs cursor-pointer" data-multiplier="1" aria-label="Scale ingredients to 1x original servings">1x</button>
-          <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer" data-multiplier="2" aria-label="Scale ingredients to double servings">2x</button>
+          <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer" data-multiplier="0.5" aria-pressed="false" aria-label="Scale ingredients to half servings">0.5x</button>
+          <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-[#9C4B25] text-white shadow-xs cursor-pointer" data-multiplier="1" aria-pressed="true" aria-label="Scale ingredients to 1x original servings">1x</button>
+          <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer" data-multiplier="2" aria-pressed="false" aria-label="Scale ingredients to double servings">2x</button>
           {!isBaking && (
-            <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer" data-multiplier="3" aria-label="Scale ingredients to triple servings">3x</button>
+            <button type="button" class="scale-btn min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-xs font-bold py-2 px-3 rounded-xl transition-all bg-white text-[#9C4B25] shadow-xs hover:bg-[#9C4B25] hover:text-white cursor-pointer" data-multiplier="3" aria-pressed="false" aria-label="Scale ingredients to triple servings">3x</button>
           )}
         </div>
       </div>
@@ -114,6 +121,20 @@ const calculatedFlourWeight = (() => {
   <div id="baking-scale-warning" class="hidden mt-4 p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 items-center gap-2.5">
     <span class="text-base">⚠️</span>
     <span><strong>Baking Vessel Warning:</strong> When doubling (2x), divide the dough across 2 skillets or loaf tins; do not crowd into a single pan.</span>
+  </div>
+
+  <!-- Mise-en-place Preparation Progress Bar -->
+  <div class="mt-4 pt-4 border-t border-[#EBE5D9]/60">
+    <div class="flex items-center justify-between text-xs font-semibold text-[#6B5B4F] mb-1.5">
+      <span class="flex items-center gap-1.5">
+        <span class="text-sm">🥣</span>
+        <span>Mise-en-Place Prep Checklist</span>
+      </span>
+      <span id="prep-progress-text" class="text-[#9C4B25] font-bold">0 of 0 prepped (0%)</span>
+    </div>
+    <div class="w-full bg-[#FAF3EE] rounded-full h-1.5 overflow-hidden border border-[#EBE5D9]">
+      <div id="prep-progress-bar" class="bg-[#4A7C59] h-full rounded-full transition-all duration-300 w-0"></div>
+    </div>
   </div>
 
   <!-- Ingredients by Category / Group -->
@@ -142,53 +163,58 @@ const calculatedFlourWeight = (() => {
               }
 
               return (
-                <li class={`ingredient-row flex items-start gap-3 p-2.5 rounded-xl transition-colors cursor-pointer select-none group ${item.optional ? 'bg-amber-50/50 hover:bg-amber-50 border border-amber-100/70' : 'hover:bg-[#FAF3EE]/60'}`}>
+                <li class={`ingredient-row flex items-start gap-3 py-2 px-2.5 rounded-xl transition-all cursor-pointer select-none group border border-transparent ${item.optional ? 'bg-amber-50/50 hover:bg-amber-50/90 border-amber-200/60' : 'hover:bg-[#FAF3EE]/70 hover:border-[#EBE5D9]/60'}`}>
                   <input 
                     type="checkbox" 
                     class="mt-1 h-4 w-4 rounded border-[#D5CDC1] text-[#9C4B25] focus:ring-[#9C4B25] cursor-pointer shrink-0"
                     aria-label={`Mark ${item.name} as prepared`}
                   />
-                  <div class="flex-1">
-                    <span class="ingredient-text text-sm sm:text-base text-[#4A3F35] leading-relaxed block">
+                  
+                  <div class="flex-1 min-w-0 text-sm sm:text-base leading-snug">
+                    <span class="ingredient-text text-[#4A3F35]">
                       {item.amount !== undefined && (
-                        <span class="volume-unit-part">
-                          <strong 
-                            class="font-semibold text-[#9C4B25] ingredient-amount" 
+                        <span class="volume-unit-part font-bold text-[#9C4B25]">
+                          <span 
+                            class="ingredient-amount" 
                             data-base={hasNumericAmount ? item.amount : ''}
                           >
                             {item.amount}
-                          </strong>
-                          {item.unit && <span class="font-medium text-[#4A3F35]"> {item.unit}</span>}
+                          </span>
+                          {item.unit && <span class="text-xs sm:text-sm font-semibold text-[#6B5B4F]"> {item.unit}</span>}
                         </span>
                       )}
 
                       {item.metricAmount !== undefined && (
-                        <span class="metric-unit-part text-xs font-semibold text-[#6B5B4F] bg-[#FAF3EE] px-2 py-0.5 rounded-lg border border-[#EBE5D9] mx-1.5 inline-block">
+                        <span class="metric-unit-part text-[11px] font-bold text-[#6B5B4F] bg-[#FAF3EE] px-1.5 py-0.5 rounded-md border border-[#EBE5D9] mx-1 inline-block">
                           <span class="metric-amount" data-base={hasNumericMetric ? item.metricAmount : ''}>
                             {item.metricAmount}
                           </span>
-                          {item.metricUnit && <span> {item.metricUnit}</span>}
+                          {item.metricUnit && <span>{item.metricUnit}</span>}
                         </span>
                       )}
 
                       {computedBakersPct !== null && (
-                        <span class="bakers-unit-part hidden text-xs font-bold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-lg border border-amber-200 mx-1.5 inline-block">
-                          <span>{computedBakersPct}% Baker's</span>
+                        <span 
+                          class="bakers-unit-part text-[11px] font-bold text-amber-900 bg-amber-100/90 px-1.5 py-0.5 rounded-md border border-amber-300 mx-1" 
+                          style="display: none;" 
+                          title={`${computedBakersPct}% Baker's Percentage`}
+                        >
+                          {computedBakersPct}%
                         </span>
                       )}
 
-                      <span class="font-medium"> {item.name}</span>
-                      {item.notes && <span class="text-xs text-[#6B5B4F] italic block sm:inline sm:ml-1">({item.notes})</span>}
+                      <span class="font-medium text-[#4A3F35]"> {item.name}</span>
+                      {item.notes && <span class="text-xs text-[#6B5B4F] italic ml-1">({item.notes})</span>}
                     </span>
 
                     {item.optional && (
                       <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
-                        <span class="text-[10px] font-bold uppercase tracking-wider bg-amber-200/70 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider bg-amber-200/80 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5 shadow-2xs">
                           <span>✨</span>
                           <span>Optional Booster</span>
                         </span>
                         {item.boosterEffect && (
-                          <span class="text-xs text-[#6B5B4F] italic bg-[#FAF3EE] px-2 py-0.5 rounded-md border border-[#EBE5D9]">
+                          <span class="text-xs text-[#6B5B4F] italic bg-[#FAF3EE] px-1.5 py-0.5 rounded-md border border-[#EBE5D9]">
                             {item.boosterEffect}
                           </span>
                         )}
@@ -222,7 +248,9 @@ const calculatedFlourWeight = (() => {
 
     function applyUnitPreference(pref: string) {
       unitBtns.forEach((btn) => {
-        if (btn.dataset.pref === pref) {
+        const isCurrent = btn.dataset.pref === pref;
+        btn.setAttribute('aria-pressed', isCurrent ? 'true' : 'false');
+        if (isCurrent) {
           btn.classList.add('bg-[#9C4B25]', 'text-white');
           btn.classList.remove('bg-white', 'text-[#6B5B4F]');
         } else {
@@ -235,25 +263,17 @@ const calculatedFlourWeight = (() => {
       rows.forEach((row) => {
         const volumePart = row.querySelector<HTMLElement>('.volume-unit-part');
         const metricPart = row.querySelector<HTMLElement>('.metric-unit-part');
-        const bakersPart = row.querySelector<HTMLElement>('.bakers-unit-part');
 
-        if (pref === 'bakers') {
-          if (volumePart) volumePart.classList.add('hidden');
-          if (metricPart) metricPart.classList.add('hidden');
-          if (bakersPart) bakersPart.classList.remove('hidden');
-        } else if (pref === 'metric') {
-          if (volumePart) volumePart.classList.add('hidden');
-          if (metricPart) metricPart.classList.remove('hidden');
-          if (bakersPart) bakersPart.classList.add('hidden');
+        if (pref === 'metric') {
+          if (volumePart) volumePart.style.display = 'none';
+          if (metricPart) metricPart.style.display = 'inline-block';
         } else if (pref === 'volume') {
-          if (volumePart) volumePart.classList.remove('hidden');
-          if (metricPart) metricPart.classList.add('hidden');
-          if (bakersPart) bakersPart.classList.add('hidden');
+          if (volumePart) volumePart.style.display = 'inline';
+          if (metricPart) metricPart.style.display = 'none';
         } else {
           // Dual view (default)
-          if (volumePart) volumePart.classList.remove('hidden');
-          if (metricPart) metricPart.classList.remove('hidden');
-          if (bakersPart) bakersPart.classList.add('hidden');
+          if (volumePart) volumePart.style.display = 'inline';
+          if (metricPart) metricPart.style.display = 'inline-block';
         }
       });
 
@@ -267,7 +287,7 @@ const calculatedFlourWeight = (() => {
     const savedPref = (() => {
       try {
         const p = localStorage.getItem(STORAGE_KEY) || 'dual';
-        return (!isBaking && p === 'bakers') ? 'dual' : p;
+        return (p === 'metric' || p === 'volume') ? p : 'dual';
       } catch {
         return 'dual';
       }
@@ -279,6 +299,33 @@ const calculatedFlourWeight = (() => {
         const pref = btn.dataset.pref || 'dual';
         applyUnitPreference(pref);
       });
+    });
+
+    // Dedicated Baker's % Toggle (Strictly OFF by default)
+    const bakersToggle = document.getElementById('bakers-pct-toggle') as HTMLButtonElement | null;
+    let bakersPctActive = false;
+
+    function setBakersPctState(active: boolean) {
+      bakersPctActive = active;
+      if (bakersToggle) {
+        bakersToggle.setAttribute('aria-pressed', active ? 'true' : 'false');
+        if (active) {
+          bakersToggle.classList.add('bg-amber-100', 'text-amber-900', 'border-amber-400');
+          bakersToggle.classList.remove('bg-white', 'text-[#6B5B4F]', 'border-[#EBE5D9]');
+        } else {
+          bakersToggle.classList.remove('bg-amber-100', 'text-amber-900', 'border-amber-400');
+          bakersToggle.classList.add('bg-white', 'text-[#6B5B4F]', 'border-[#EBE5D9]');
+        }
+      }
+
+      const bakersParts = card ? card.querySelectorAll<HTMLElement>('.bakers-unit-part') : [];
+      bakersParts.forEach((part) => {
+        part.style.display = active ? 'inline-block' : 'none';
+      });
+    }
+
+    bakersToggle?.addEventListener('click', () => {
+      setBakersPctState(!bakersPctActive);
     });
 
     // Serving / Batch Scaler
@@ -297,8 +344,9 @@ const calculatedFlourWeight = (() => {
       btn.addEventListener('click', () => {
         const multiplier = parseFloat(btn.dataset.multiplier || '1');
 
-        // Update button styles
+        // Update button styles and aria-pressed
         scaleBtns.forEach((b) => {
+          b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
           b.classList.remove('bg-[#9C4B25]', 'text-white');
           b.classList.add('bg-white', 'text-[#9C4B25]');
         });
@@ -342,6 +390,28 @@ const calculatedFlourWeight = (() => {
       });
     });
 
+    // Mise-en-place Preparation Progress Tracker
+    const checkboxes = card.querySelectorAll<HTMLInputElement>('.ingredient-row input[type="checkbox"]');
+    const progressText = document.getElementById('prep-progress-text');
+    const progressBar = document.getElementById('prep-progress-bar');
+
+    function updateProgress() {
+      const total = checkboxes.length;
+      if (total === 0) return;
+      let checked = 0;
+      checkboxes.forEach((cb) => {
+        if (cb.checked) checked++;
+      });
+      const pct = Math.round((checked / total) * 100);
+      if (progressText) {
+        progressText.textContent = `${checked} of ${total} prepped (${pct}%)`;
+      }
+      if (progressBar) {
+        progressBar.style.width = `${pct}%`;
+      }
+    }
+    updateProgress();
+
     // Checkbox strikethrough interaction
     const rows = card.querySelectorAll<HTMLElement>('.ingredient-row');
     rows.forEach((row) => {
@@ -357,6 +427,7 @@ const calculatedFlourWeight = (() => {
         } else {
           text?.classList.remove('line-through', 'opacity-40');
         }
+        updateProgress();
       });
     });
   }
