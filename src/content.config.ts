@@ -23,6 +23,8 @@ const recipes = defineCollection({
     proofTimeMinutes: z.number().optional(),
     hydration: z.union([z.number(), z.string()]).optional(),
     bakerFlourWeight: z.number().optional(),
+    prerequisiteSlug: z.string().optional(),
+    prerequisiteLabel: z.string().optional(),
     servings: z.number().default(4),
     equipment: z.array(z.string()).default(['Skillet']),
     ingredients: z.array(
